@@ -15,3 +15,48 @@ venv/
 
 # Logs
 *.log
+# ── Frontend (Node/Vite) ──
+node_modules/
+dist/
+dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Backend (Python) ──
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# ── Environment & Secrets ──
+.env
+.env.*
+# Do not commit your master seed, HMAC secret, or AES keys!
+backend/*.enc
+
+# ── Large AI Models ──
+# The YOLO weights are too large for standard Git and should be downloaded dynamically
+backend/yolov8n-seg.pt
+
+# ── Generated Evidence, Vaults, and Logs ──
+# Ignore all dynamically generated output folders and images
+backend/image_vault/
+backend/heatmaps/
+backend/*_signed.png
+backend/recovered_*.png
+
+# Ignore all the dynamic ledger and log JSON files
+backend/delivery_log.json
+backend/forensic_audit_log.json
+backend/gateway_results.json
+backend/registration_ledger.json
+backend/tamper_blacklist.json
+backend/tamper_log.json
+
+# ── Misc & OS Files ──
+.DS_Store
+Thumbs.db
+repomix-output.md
