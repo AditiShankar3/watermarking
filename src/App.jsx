@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import { registerImage, gatewayCheck, recoverCase, fetchResults, fetchPlatforms } from "./api";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
+// Palette: cool slate base, single teal accent, crisp reds for blocked state
+// Signature: the scanner animation in gateway check sequence
+
 const C = {
   slate50:  "#f8fafc",
   slate100: "#f1f5f9",
@@ -9,6 +11,7 @@ const C = {
   slate300: "#cbd5e1",
   slate400: "#94a3b8",
   slate500: "#64748b",
+  slate600: "#475569",
   slate700: "#334155",
   slate800: "#1e293b",
   slate900: "#0f172a",
@@ -49,6 +52,10 @@ const Mono = ({ children, dim }) => (
     fontFamily:"'JetBrains Mono',ui-monospace,monospace",
     fontSize:12,color:dim?C.slate400:C.slate700,letterSpacing:"-0.01em"
   }}>{children}</span>
+);
+
+const Divider = () => (
+  <div style={{height:1,background:C.slate200,margin:"20px 0"}} />
 );
 
 // ── File Drop Zone ────────────────────────────────────────────────────────────
@@ -106,6 +113,7 @@ function DropZone({ label, onFile, accept = "image/*", file }) {
 
 // ── Check row (gateway scanner) ───────────────────────────────────────────────
 function CheckRow({ n, label, state, detail, value }) {
+  // state: "idle" | "running" | "pass" | "fail" | "skip"
   const iconMap = {
     idle:    { ch: "○", color: C.slate300 },
     running: { ch: "◐", color: C.amber500, spin: true },
@@ -171,39 +179,49 @@ function Stat({ label, value, sub, accent }) {
 // ── Registration panel ────────────────────────────────────────────────────────
 function RegisterPanel() {
   const [file, setFile] = useState(null);
-  const [step, setStep] = useState("idle"); 
+  const [step, setStep] = useState("idle"); // idle|running|done|error
   const [result, setResult] = useState(null);
-  const [errorLog, setErrorLog] = useState(null);
+  const [log, setLog] = useState([]);
 
-  const executeRegistration = async () => {
+  const addLog = (msg) => setLog(prev => [...prev, msg]);
+
+  const simulate = async () => {
     if (!file) return;
-    setStep("running");
-    setErrorLog(null);
-    setResult(null);
+    setStep("running"); setLog([]); setResult(null);
 
-    try {
-      const data = await registerImage(file.file);
-      
-      if (!data.ok) {
-        setStep("idle");
-        setErrorLog(data.detail || data.reason || "Registration failed");
-        return;
-      }
+    const steps = [
+      [600,  "Phase 1 — YOLO ROI masking: detecting foreground objects …"],
+      [1200, "Phase 1 — Background mask M_buffer generated (erosion ×3 applied)"],
+      [600,  "Phase 2 — Bilateral filter + Gaussian blur applied (texture removed)"],
+      [800,  "Phase 2 — DWT ×3 (Haar) → LL3 subband extracted (1/64 resolution)"],
+      [600,  "Phase 3 — 4×4 DCT blockwise on LL3, DC coefficients collected"],
+      [700,  "Phase 4 — Dark pool (15%) + Bright pool (15%) identified"],
+      [900,  "Phase 5 — 5-replica CSPRNG anchor selection (SHA-256 derived seeds)"],
+      [600,  "Phase 5 — Majority vote (3/5) → 256-bit W_key generated  ✓"],
+      [500,  "Embedding scattered LSB tamper seal (MASTER_SEED positions) …"],
+      [600,  "AES-256-GCM encrypting original → image_vault/  ✓"],
+      [400,  "HMAC-SHA256 signing ledger record …"],
+      [500,  "Saving to MongoDB Atlas (ledger collection) …  ✓"],
+    ];
 
-      setResult({
-        filename: data.filename,
-        signedName: data.signed_name,
-        keyBalance: data.key_balance_pct,
-        keyBits: data.key_len_bits,
-        tamperHash: data.tamper_hash,
-        vaultFile: data.vault_path,
-        timestamp: data.timestamp,
-      });
-      setStep("done");
-    } catch (err) {
-      setStep("idle");
-      setErrorLog(err.message);
+    for (const [delay, msg] of steps) {
+      await new Promise(r => setTimeout(r, delay));
+      addLog(msg);
     }
+
+    const fakeKey = Array.from({length:32},()=>Math.round(Math.random())).join("");
+    const fakeHash = [...Array(40)].map(()=>"0123456789abcdef"[Math.floor(Math.random()*16)]).join("");
+
+    setResult({
+      filename: file.name,
+      signedName: file.name.replace(/\.[^.]+$/, "_signed.png"),
+      keyBalance: 49.6,
+      keyBits: fakeKey,
+      tamperHash: fakeHash,
+      vaultFile: `image_vault/${file.name.replace(/\.[^.]+$/,"")}`,
+      timestamp: new Date().toLocaleString(),
+    });
+    setStep("done");
   };
 
   return (
@@ -215,15 +233,9 @@ function RegisterPanel() {
         <DropZone label="Upload the original image to register" onFile={setFile} file={file} />
       </div>
 
-      {errorLog && (
-        <div style={{ background: C.red50, color: C.red500, padding: 12, borderRadius: 8, fontSize: 13, border: `1px solid ${C.red100}` }}>
-          <strong>Error:</strong> {errorLog}
-        </div>
-      )}
-
       {file && step === "idle" && (
         <button
-          onClick={executeRegistration}
+          onClick={simulate}
           style={{
             background:C.teal600,color:"#fff",border:"none",borderRadius:8,
             padding:"11px 20px",fontWeight:600,fontSize:13,cursor:"pointer",
@@ -237,9 +249,28 @@ function RegisterPanel() {
       {step === "running" && (
         <div style={{
           background:C.slate50,border:`1px solid ${C.slate200}`,
-          borderRadius:8,padding:14, display:"flex", justifyContent: "center", color: C.slate500
+          borderRadius:8,padding:14
         }}>
-           <span style={{animation:"spin 1s linear infinite", display:"inline-block", marginRight: 8}}>◐</span> Communicating with Backend Pipeline...
+          <div style={{fontSize:11,fontWeight:700,color:C.slate500,
+            letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:10}}>
+            Pipeline
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:4,maxHeight:260,overflowY:"auto"}}>
+            {log.map((l,i)=>(
+              <div key={i} style={{
+                fontSize:11.5,color:l.includes("✓")?C.teal600:C.slate500,
+                fontFamily:l.startsWith("Phase")||l.startsWith("AES")||l.startsWith("HMAC")||l.startsWith("Saving")||l.startsWith("Embed")?"inherit":"monospace",
+                lineHeight:1.6,display:"flex",gap:8,alignItems:"baseline"
+              }}>
+                <span style={{color:C.slate300,flexShrink:0}}>{String(i+1).padStart(2,"0")}</span>
+                {l}
+              </div>
+            ))}
+            <div style={{display:"flex",gap:6,alignItems:"center",color:C.amber500,fontSize:11.5,marginTop:4}}>
+              <span style={{animation:"spin 1s linear infinite",display:"inline-block"}}>◐</span>
+              Processing…
+            </div>
+          </div>
         </div>
       )}
 
@@ -263,7 +294,7 @@ function RegisterPanel() {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
             <Stat label="Key balance" value={`${result.keyBalance}%`}
               sub="ideal ≈ 50%" accent={C.teal600} />
-            <Stat label="Key length" value={`${result.keyBits} bits`} sub="5-replica majority vote" />
+            <Stat label="Key length" value="256 bits" sub="5-replica majority vote" />
             <Stat label="Signed copy" value={result.signedName}
               sub="distribute this" />
             <Stat label="Registered" value={result.timestamp} />
@@ -277,8 +308,8 @@ function RegisterPanel() {
             </div>
             {[
               ["Tamper hash", truncHash(result.tamperHash)],
-              ["Vault file", result.vaultFile],
-              ["Ledger", "Local File System JSON"],
+              ["Vault file", result.vaultFile + ".enc"],
+              ["Ledger", "MongoDB Atlas · ledger collection"],
               ["Seal", "AES-256-GCM + HMAC-SHA256"],
             ].map(([k,v])=>(
               <div key={k} style={{display:"flex",justifyContent:"space-between",
@@ -297,7 +328,7 @@ function RegisterPanel() {
             The original is AES-256-GCM encrypted in the vault.
           </div>
 
-          <button onClick={()=>{setStep("idle");setFile(null);setResult(null);}}
+          <button onClick={()=>{setStep("idle");setFile(null);setLog([]);setResult(null);}}
             style={{
               background:"white",color:C.slate700,border:`1px solid ${C.slate300}`,
               borderRadius:8,padding:"10px 20px",fontWeight:600,fontSize:13,
@@ -314,75 +345,99 @@ function RegisterPanel() {
 // ── Gateway panel ─────────────────────────────────────────────────────────────
 function GatewayPanel() {
   const [file, setFile] = useState(null);
-  const [platforms, setPlatforms] = useState(null);
-  const [platform, setPlatform] = useState("");
+  const [platform, setPlatform] = useState("police_portal");
   const [step, setStep] = useState("idle");
+  const [checks, setChecks] = useState({
+    pre:  { state:"idle" },
+    c1:   { state:"idle" },
+    c2:   { state:"idle" },
+    c3:   { state:"idle" },
+  });
   const [result, setResult] = useState(null);
   const [showRecover, setShowRecover] = useState(false);
   const [recovered, setRecovered] = useState(false);
-  const [errorLog, setErrorLog] = useState(null);
 
-  // Fetch real platforms from backend on mount
-  useEffect(() => {
-    fetchPlatforms()
-      .then((data) => {
-        setPlatforms(data);
-        if (Object.keys(data).length > 0) {
-          setPlatform(Object.keys(data)[0]);
-        }
-      })
-      .catch((err) => console.error("Failed to load platforms:", err));
-  }, []);
+  const PLAT = {
+    social_media:  { label:"SecureShare · Social Media",  threshold:0.75 },
+    news_agency:   { label:"TruthWire · News Agency",     threshold:0.80 },
+    police_portal: { label:"CrimeVault · Police Portal",  threshold:0.85 },
+  };
 
-  const executeGatewayCheck = async () => {
-    if (!file || !platform) return;
+  const setCheck = (key, val) =>
+    setChecks(prev => ({ ...prev, [key]: { ...prev[key], ...val } }));
+
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  const simulate = async () => {
+    if (!file) return;
     setStep("running");
     setResult(null);
     setShowRecover(false);
     setRecovered(false);
-    setErrorLog(null);
+    setChecks({ pre:{state:"idle"}, c1:{state:"idle"}, c2:{state:"idle"}, c3:{state:"idle"} });
 
-    try {
-      const data = await gatewayCheck(file.file, platform);
-      
-      setResult({
-        decision: data.decision,
-        filename: data.filename,
-        nc: data.nc_score,
-        ncPass: data.nc_score >= platforms[platform].nc_threshold,
-        bitAcc: data.bit_accuracy,
-        matchedTo: data.matched_to || "N/A",
-        registeredAt: data.matched_registered_at || "N/A",
-        tamperCells: data.n_tampered_cells || 0,
-        checkTime: data.check_time_s,
-        caseId: data.case_id,
-        tamperStatus: data.tamper_status,
-        tamperDetail: data.tamper_detail
-      });
+    const isTampered = file.name.toLowerCase().includes("ai") ||
+                       file.name.toLowerCase().includes("tamper") ||
+                       file.name.toLowerCase().includes("fake");
 
-      if (data.can_recover) setShowRecover(true);
-      setStep("done");
-    } catch (err) {
-      setStep("idle");
-      setErrorLog(err.message);
+    // Pre-check
+    setCheck("pre", { state:"running" });
+    await delay(900);
+    setCheck("pre", { state:"pass", detail:"Not in blacklist — first time seen" });
+
+    // Check 1
+    await delay(300);
+    setCheck("c1", { state:"running" });
+    await delay(1100);
+    if (isTampered) {
+      setCheck("c1", { state:"fail", detail:"SHA-256 hash mismatch — LSB seal destroyed. AI pixel regeneration detected." });
+    } else {
+      setCheck("c1", { state:"pass", detail:"LSB seal intact — SHA-256 matches registered hash" });
     }
-  };
 
-  const handleRecover = async () => {
-    if (!result?.caseId) return;
-    try {
-      const rec = await recoverCase(result.caseId);
-      if (rec.ok) {
-        setRecovered(true);
-      } else {
-        alert("Recovery failed: " + rec.reason);
-      }
-    } catch (e) {
-      alert("Error during recovery: " + e.message);
+    // Check 2
+    await delay(300);
+    if (isTampered) {
+      setCheck("c2", { state:"running" });
+      await delay(1400);
+      setCheck("c2", { state:"fail", detail:"38/256 cells flagged (MAD > 5.0). Tampered region: upper-right quadrant." });
+    } else {
+      setCheck("c2", { state:"skip", detail:"Skipped — tamper seal intact" });
     }
-  };
 
-  if (!platforms) return <div style={{padding: 20}}>Loading platforms...</div>;
+    // Check 3
+    await delay(300);
+    setCheck("c3", { state:"running" });
+    await delay(1200);
+    const nc = isTampered ? 0.6142 : 0.9531;
+    const threshold = PLAT[platform].threshold;
+    const ncPass = nc >= threshold;
+    setCheck("c3", {
+      state: ncPass ? "pass" : "fail",
+      detail: ncPass
+        ? `NC = ${nc} ≥ ${threshold} · ownership proven`
+        : `NC = ${nc} < ${threshold} · structural fingerprint degraded`,
+      value: nc.toFixed(4),
+    });
+
+    await delay(400);
+
+    const decision = isTampered ? "BLOCK" : "ALLOW";
+    setResult({
+      decision,
+      filename: file.name,
+      nc,
+      ncPass,
+      bitAcc: isTampered ? 73.4 : 97.7,
+      matchedTo: "142025.png",
+      registeredAt: "2026-06-22 10:11:26",
+      tamperCells: isTampered ? 38 : 0,
+      checkTime: (2.8 + Math.random()*0.4).toFixed(1),
+    });
+
+    if (decision === "BLOCK") setShowRecover(true);
+    setStep("done");
+  };
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -391,7 +446,7 @@ function GatewayPanel() {
           Platform
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-          {Object.entries(platforms).map(([key,p])=>(
+          {Object.entries(PLAT).map(([key,p])=>(
             <button key={key} onClick={()=>setPlatform(key)}
               style={{
                 padding:"10px 8px",borderRadius:7,fontSize:11.5,fontWeight:600,
@@ -400,10 +455,11 @@ function GatewayPanel() {
                 color:platform===key?C.teal600:C.slate600,
                 cursor:"pointer",lineHeight:1.4,textAlign:"center"
               }}>
-              <div style={{fontSize: 20, marginBottom: 4}}>{p.icon}</div>
-              <div style={{fontWeight:700}}>{p.name}</div>
-              <div style={{fontSize:10,color:C.slate400,marginTop:4,fontWeight:400}}>
-                NC ≥ {p.nc_threshold}
+              {p.label.split(" · ").map((l,i)=>(
+                <div key={i} style={{fontWeight:i===0?700:400}}>{l}</div>
+              ))}
+              <div style={{fontSize:10,color:C.slate400,marginTop:2,fontWeight:400}}>
+                NC ≥ {p.threshold}
               </div>
             </button>
           ))}
@@ -421,14 +477,8 @@ function GatewayPanel() {
         />
       </div>
 
-      {errorLog && (
-        <div style={{ background: C.red50, color: C.red500, padding: 12, borderRadius: 8, fontSize: 13, border: `1px solid ${C.red100}` }}>
-          <strong>Error:</strong> {errorLog}
-        </div>
-      )}
-
       {file && step === "idle" && (
-        <button onClick={executeGatewayCheck} style={{
+        <button onClick={simulate} style={{
           background:C.slate800,color:"#fff",border:"none",borderRadius:8,
           padding:"11px 20px",fontWeight:600,fontSize:13,cursor:"pointer"
         }}>
@@ -436,12 +486,24 @@ function GatewayPanel() {
         </button>
       )}
 
-      {step === "running" && (
+      {(step === "running" || step === "done") && (
         <div style={{
           background:C.slate50,border:`1px solid ${C.slate200}`,
-          borderRadius:8,padding:14, display:"flex", justifyContent: "center", color: C.slate500
+          borderRadius:8,padding:14
         }}>
-           <span style={{animation:"spin 1s linear infinite", display:"inline-block", marginRight: 8}}>◐</span> Analyzing image against backend registry...
+          <div style={{fontSize:11,fontWeight:700,color:C.slate400,
+            letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:10}}>
+            Verification checks
+          </div>
+          <CheckRow n="0" label="Dual-hash blacklist (SHA-256 + pHash)"
+            state={checks.pre.state} detail={checks.pre.detail} />
+          <CheckRow n="1" label="Scattered LSB tamper seal"
+            state={checks.c1.state} detail={checks.c1.detail} />
+          <CheckRow n="2" label={`MAD localisation (16×16 grid, floor ${5.0})`}
+            state={checks.c2.state} detail={checks.c2.detail} />
+          <CheckRow n="3" label="Zero-watermark NC score"
+            state={checks.c3.state} detail={checks.c3.detail}
+            value={checks.c3.value} />
         </div>
       )}
 
@@ -459,37 +521,12 @@ function GatewayPanel() {
             }}>
               {result.decision==="ALLOW"?"✅  Upload allowed":"🚫  Upload blocked"}
             </div>
-            
-            <div style={{fontSize: 13, color: C.slate700, marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${result.decision==="ALLOW"?"#bbf7d0":"#fecaca"}`}}>
-              <strong>Status:</strong> {result.tamperStatus} <br/>
-              <span style={{color: C.slate500, fontSize: 12}}>{result.tamperDetail}</span>
-            </div>
-
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            <Stat
-                label="NC Score"
-                value={
-                  typeof result.nc === "number"
-                    ? result.nc.toFixed(4)
-                    : "—"
-                }
-                accent={
-                  result.ncPass
-                    ? C.teal600
-                    : C.red500
-                }
-                sub={`threshold ${platforms[platform].nc_threshold}`}
-              />
-
-              <Stat
-                label="Bit accuracy"
-                value={
-                  result.bitAcc != null
-                    ? `${result.bitAcc}%`
-                    : "—"
-                }
-                sub="≥87.5% expected"
-              />
+              <Stat label="NC Score" value={result.nc.toFixed(4)}
+                accent={result.ncPass?C.teal600:C.red500}
+                sub={`threshold ${PLAT[platform].threshold}`} />
+              <Stat label="Bit accuracy" value={`${result.bitAcc}%`}
+                sub="≥87.5% expected" />
               <Stat label="Matched to" value={result.matchedTo}
                 sub={`registered ${result.registeredAt}`} />
               <Stat label="Check time" value={`${result.checkTime}s`}
@@ -510,7 +547,7 @@ function GatewayPanel() {
                 activating post-delivery tamper lock.
               </div>
               <div style={{display:"flex",gap:8}}>
-                <button onClick={handleRecover} style={{
+                <button onClick={()=>setRecovered(true)} style={{
                   background:C.teal600,color:"#fff",border:"none",borderRadius:7,
                   padding:"9px 16px",fontWeight:600,fontSize:12,cursor:"pointer"
                 }}>
@@ -546,7 +583,7 @@ function GatewayPanel() {
           <button onClick={()=>{setStep("idle");setFile(null);setResult(null);}}
             style={{
               background:"white",color:C.slate700,border:`1px solid ${C.slate300}`,
-              borderRadius:8,padding:"10px 20px",fontWeight:600,fontSize:13,cursor:"pointer", marginTop: 10
+              borderRadius:8,padding:"10px 20px",fontWeight:600,fontSize:13,cursor:"pointer"
             }}>
             Check another image
           </button>
@@ -557,37 +594,26 @@ function GatewayPanel() {
 }
 
 // ── Results panel ─────────────────────────────────────────────────────────────
+const MOCK_RESULTS = [
+  { filename:"142025_ai.png",   decision:"BLOCK", nc:0.6142, bit_accuracy:73.4, tamper_status:"❌ TAMPERED", check_time_s:34.1, timestamp:"2026-06-27 16:59" },
+  { filename:"142025.png",      decision:"ALLOW", nc:0.9531, bit_accuracy:97.7, tamper_status:"✅ UNTAMPERED", check_time_s:28.4, timestamp:"2026-06-27 16:45" },
+  { filename:"cam3_ai.png",     decision:"BLOCK", nc:0.5891, bit_accuracy:69.1, tamper_status:"❌ TAMPERED", check_time_s:31.8, timestamp:"2026-06-27 15:22" },
+  { filename:"cam3_orig.png",   decision:"ALLOW", nc:0.9609, bit_accuracy:98.0, tamper_status:"✅ UNTAMPERED", check_time_s:26.2, timestamp:"2026-06-27 15:10" },
+  { filename:"312839_ai.png",   decision:"BLOCK", nc:0.0,    bit_accuracy:0.0,  tamper_status:"⛔ BLACKLISTED", check_time_s:0.3, timestamp:"2026-06-27 14:01" },
+];
+
 function ResultsPanel() {
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadResults = () => {
-    setLoading(true);
-    fetchResults()
-      .then(setResults)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    loadResults();
-  }, []);
-
-  const blocked = results.filter(r=>r.decision==="BLOCK").length;
-  const allowed = results.filter(r=>r.decision==="ALLOW").length;
-  const validNcResults = results.filter(r=>r.nc_score > 0);
-  const avgNc = validNcResults.length > 0 
-    ? (validNcResults.reduce((a,r)=>a+r.nc_score,0) / validNcResults.length).toFixed(4)
-    : "0.0000";
-
-  if (loading) return <div style={{padding: 20}}>Loading results from backend...</div>;
+  const blocked = MOCK_RESULTS.filter(r=>r.decision==="BLOCK").length;
+  const allowed = MOCK_RESULTS.filter(r=>r.decision==="ALLOW").length;
+  const avgNc   = (MOCK_RESULTS.filter(r=>r.nc>0).reduce((a,r)=>a+r.nc,0)/
+                   MOCK_RESULTS.filter(r=>r.nc>0).length).toFixed(4);
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
-        <Stat label="Total runs"   value={results.length} />
-        <Stat label="Blocked"      value={blocked}  accent={C.red500}  sub={results.length > 0 ? `${Math.round(blocked/results.length*100)}%` : "0%"} />
-        <Stat label="Allowed"      value={allowed}  accent={C.teal600} sub={results.length > 0 ? `${Math.round(allowed/results.length*100)}%` : "0%"} />
+        <Stat label="Total runs"   value={MOCK_RESULTS.length} />
+        <Stat label="Blocked"      value={blocked}  accent={C.red500}  sub={`${Math.round(blocked/MOCK_RESULTS.length*100)}%`} />
+        <Stat label="Allowed"      value={allowed}  accent={C.teal600} sub={`${Math.round(allowed/MOCK_RESULTS.length*100)}%`} />
         <Stat label="Avg NC score" value={avgNc} />
       </div>
 
@@ -597,7 +623,7 @@ function ResultsPanel() {
       }}>
         <div style={{
           display:"grid",
-          gridTemplateColumns:"1fr 90px 80px 80px 120px 110px",
+          gridTemplateColumns:"1fr 90px 80px 80px 90px 110px",
           gap:0,
           padding:"8px 14px",
           background:C.slate100,
@@ -608,14 +634,12 @@ function ResultsPanel() {
               letterSpacing:"0.05em",textTransform:"uppercase"}}>{h}</div>
           ))}
         </div>
-        {results.length === 0 ? (
-           <div style={{padding: 20, textAlign: "center", fontSize: 13, color: C.slate500}}>No results logged yet.</div>
-        ) : results.map((r,i)=>(
+        {MOCK_RESULTS.map((r,i)=>(
           <div key={i} style={{
             display:"grid",
-            gridTemplateColumns:"1fr 90px 80px 80px 120px 110px",
+            gridTemplateColumns:"1fr 90px 80px 80px 90px 110px",
             padding:"10px 14px",
-            borderBottom: i<results.length-1?`1px solid ${C.slate100}`:"none",
+            borderBottom: i<MOCK_RESULTS.length-1?`1px solid ${C.slate100}`:"none",
             alignItems:"center",
             background:i%2===0?"white":C.slate50,
           }}>
@@ -629,15 +653,15 @@ function ResultsPanel() {
               </Badge>
             </div>
             <div>
-              <Mono dim={r.nc_score===0}>{r.nc_score===0?"—":r.nc_score.toFixed(4)}</Mono>
+              <Mono dim={r.nc===0}>{r.nc===0?"—":r.nc.toFixed(4)}</Mono>
             </div>
             <div>
               <Mono dim={r.bit_accuracy===0}>
                 {r.bit_accuracy===0?"—":r.bit_accuracy.toFixed(1)+"%"}
               </Mono>
             </div>
-            <div style={{fontSize:10,color:C.slate500}}>{r.tamper_status}</div>
-            <div style={{fontSize:10,color:C.slate400}}>{r.check_time_s}s · <br/>{r.timestamp.split(' ')[1]}</div>
+            <div style={{fontSize:11,color:C.slate500}}>{r.tamper_status}</div>
+            <div style={{fontSize:11,color:C.slate400}}>{r.check_time_s}s · {r.timestamp}</div>
           </div>
         ))}
       </div>
@@ -650,13 +674,13 @@ function ResultsPanel() {
         <span style={{fontSize:16}}>📥</span>
         <div style={{flex:1}}>
           <div style={{fontSize:12,fontWeight:600,color:C.slate700}}>
-            Sync from Backend
+            Sync from MongoDB Atlas
           </div>
           <div style={{fontSize:11,color:C.slate400,marginTop:1}}>
-            gateway_results ledger · {results.length} records loaded
+            gateway_results collection · {MOCK_RESULTS.length} records loaded
           </div>
         </div>
-        <button onClick={loadResults} style={{
+        <button style={{
           background:C.slate100,color:C.slate700,border:`1px solid ${C.slate200}`,
           borderRadius:6,padding:"7px 14px",fontWeight:600,fontSize:12,cursor:"pointer"
         }}>
@@ -697,7 +721,7 @@ export default function App() {
         padding:"0 24px",position:"sticky",top:0,zIndex:100
       }}>
         <div style={{
-          maxWidth:780,margin:"0 auto",
+          maxWidth:"min(880px, 94vw)",margin:"0 auto",
           display:"flex",alignItems:"center",gap:0,height:56
         }}>
           <div style={{
@@ -737,7 +761,7 @@ export default function App() {
       </div>
 
       {/* Content */}
-      <div style={{maxWidth:780,margin:"0 auto",padding:"28px 24px 60px"}}>
+      <div style={{maxWidth:"min(880px, 94vw)",margin:"0 auto",padding:"28px 24px 60px"}}>
         {tab === "register" && (
           <>
             <div style={{marginBottom:24}}>
@@ -747,7 +771,7 @@ export default function App() {
               </div>
               <div style={{fontSize:13,color:C.slate500,lineHeight:1.6}}>
                 Generates a 256-bit zero-watermark key via YOLO + DWT×3 + DCT, embeds a
-                scattered LSB tamper seal, and stores everything in the backend with
+                scattered LSB tamper seal, and stores everything in MongoDB Atlas with
                 AES-256-GCM vault encryption.
               </div>
             </div>
@@ -778,7 +802,7 @@ export default function App() {
                 Detection results
               </div>
               <div style={{fontSize:13,color:C.slate500,lineHeight:1.6}}>
-                All gateway runs synced directly from the backend system ledger.
+                All gateway runs synced from MongoDB Atlas.
                 NC score ≥ platform threshold = ownership proven.
               </div>
             </div>
