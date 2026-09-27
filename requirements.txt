@@ -1,0 +1,17 @@
+opencv-python
+numpy
+PyWavelets
+imagehash
+cryptography
+scikit-image
+ultralytics
+Pillow
+requests
+psutil
+python-dotenv
+
+# Optional — only needed if you use the matching integration:
+pymongo               # sync-mongo
+google-api-python-client       # backup-drive
+google-auth-httplib2           # backup-drive
+google-auth-oauthlib            # backup-drive

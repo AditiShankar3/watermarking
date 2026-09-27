@@ -1,62 +1,102 @@
-# Environment variables
+# ==============================================================================
+# ENVIRONMENT & SECRETS (NEVER COMMIT)
+# ==============================================================================
 .env
+.env.*
+!.env.example
 
-# Python
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
+# Encrypted secret keys & seeds (*.enc anywhere)
+*.enc
+data/secrets/
+secrets/
+master.seed.enc
+ledger.hmac_secret.enc
+aes.key.enc
 
-# Virtual environment
-venv/
-.env/
+# OAuth & API Credentials
+credentials.json
+token.pickle
+client_secrets*.json
 
-# OS files
-.DS_Store
-
-# Logs
-*.log
-# ── Frontend (Node/Vite) ──
-node_modules/
-dist/
-dist-ssr/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# ── Backend (Python) ──
+# ==============================================================================
+# PYTHON & SYSTEM
+# ==============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+
+# Virtual Environments
 .venv/
 venv/
 env/
+ENV/
 
-# ── Environment & Secrets ──
-.env
-.env.*
-# Do not commit your master seed, HMAC secret, or AES keys!
-backend/*.enc
-
-# ── Large AI Models ──
-# The YOLO weights are too large for standard Git and should be downloaded dynamically
-backend/yolov8n-seg.pt
-
-# ── Generated Evidence, Vaults, and Logs ──
-# Ignore all dynamically generated output folders and images
-backend/image_vault/
-backend/heatmaps/
-backend/*_signed.png
-backend/recovered_*.png
-
-# Ignore all the dynamic ledger and log JSON files
-backend/delivery_log.json
-backend/forensic_audit_log.json
-backend/gateway_results.json
-backend/registration_ledger.json
-backend/tamper_blacklist.json
-backend/tamper_log.json
-
-# ── Misc & OS Files ──
+# OS-generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# Jupyter / Colab artifacts
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# ==============================================================================
+# LARGE AI MODELS & BINARIES
+# ==============================================================================
+*.pt
+*.pth
+*.onnx
+*.weights
+yolov8n-seg.pt
+
+# ==============================================================================
+# GENERATED EVIDENCE, VAULTS, & OUTPUTS
+# ==============================================================================
+# Raw generated output directories
+data/image_vault/
+data/outputs/
+data/heatmaps/
+data/recovered/
+data/attack_samples/
+
+# Local fallback outputs (if created in root)
+image_vault/
+heatmaps/
+recovered_original.png
+_temp_recovered.png
+*tamper_heatmap.png
+*_signed.*
+registration_diagnostics.png
+
+# Zipped backups
+*.zip
+data/*.zip
+
+# ==============================================================================
+# DYNAMIC LEDGER, BLACKLIST & LOG FILES
+# ==============================================================================
+# Don't commit dynamically changing ledger/log data from local runs
+data/*.json
+!data/.gitkeep
+
+# Root json runtime databases
+registration_ledger.json
+tamper_blacklist.json
+tamper_log.json
+delivery_log.json
+gateway_results.json
+forensic_audit_log.json
+resource_profile_registration.json
+
+# ==============================================================================
+# CODE ANALYSIS & REPO TOOLS
+# ==============================================================================
 repomix-output.md
+repomix-output.txt
+*.log
