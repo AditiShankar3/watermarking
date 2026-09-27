@@ -1,121 +1,109 @@
+
 # Zero-Watermark Chain-of-Custody System
 
-A two-tier image authentication system: a structural "zero"-watermark
-(YOLO ROI + DWT/DCT fingerprint, survives benign compression) composed with
-a fragile LSB tamper seal (catches genuine edits), backed by an HMAC-signed
-ledger and a hash-chained forensic audit log.
+A two-tier, compression-robust image authentication and forensics framework: a structural "zero"-watermark (YOLO ROI segmentation + 3-level DWT/DCT background fingerprint, survives deepfakes and severe compression) composed with a semi-fragile DCT-QIM tamper seal (tolerates benign lossy compression, catches genuine edits), backed by an HMAC-signed ledger, decentralized IPFS evidence vault, and a hash-chained forensic audit log.
 
-This is a straight port of the original notebook into a runnable package —
-same algorithms, same check order, same decisions — reorganized so it runs
-from the command line instead of cell-by-cell, with secrets in `.env`
-instead of in the code.
+This repository is a modular, production-ready implementation of the research prototype — organized into clean, reusable modules runnable from the CLI or importable as an API, with credentials secured via `.env`.
 
 ## Setup
 
 ```bash
 python3 -m venv .venv
+
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
+
 pip install -r requirements.txt
-cp .env.example .env              # fill in only what you actually use
+
+cp .env.example .env             # Fill in Pinata JWT, Mongo URI, and Google Drive configs
 ```
 
-The first YOLO segmentation call downloads `yolov8n-seg.pt` automatically —
-no manual step needed.
+The first YOLO segmentation call automatically downloads `yolov8n-seg.pt` — no manual setup needed.
 
-## Quick start
+## Quick Start
 
 ```bash
-# Register an original image (prompts for a vault passphrase on first run,
-# which creates the secret vault; every later command asks for the same one)
-python main.py register --image samples/original.jpg
+# Register an original image (automatically embeds the semi-fragile seal,
+# encrypts the original in the AES vault, and uploads to Pinata IPFS)
+python3 main.py register samples/original.jpg
 
-# Check a suspect image against the registered ledger
-python main.py verify --image samples/suspect.jpg --platform police_portal
+# Verify a suspect image against the registered ledger (3-way open-world check)
+python3 main.py verify samples/suspect.jpg --platform police_portal
 
-# See the tamper-evident audit trail
-python main.py audit
+# Verify an unregistered image (cleanly rejected with no false accusations)
+python3 main.py verify samples/unregistered.png
 
-# Profile CPU time + peak memory for registration, across a folder of images
-# (verification runs server-side and isn't the resource-constrained target,
-# so only registration is profiled — see watermark/metrics.py)
-python main.py profile --images samples/test_set/
+# View the hash-chained, tamper-evident forensic audit trail
+python3 main.py audit
+
+# Profile CPU time + peak RAM for registration across a folder of images
+# (Profiles edge-device resource footprint, excluding network/GUI latency)
+python3 scripts/run_profiler.py --images samples/test_set/
 ```
 
-Run `python main.py -h` for the full command list (also: `jpeg-attack`,
-`backup-drive`, `sync-mongo`).
+Run `python3 main.py -h` for the full command list (also: `jpeg-attack`, `backup-drive`, `sync-mongo`).
 
-## Project layout
+## Project Layout
 
-```
-config.py                    All tunable constants + env-loaded secrets/paths
-main.py                      CLI entrypoint — start here
+```text
+config.py                    All tunable constants, thresholds + env-loaded secrets/paths
+
+main.py                      Streamlined CLI entrypoint (register, verify, audit)
+
 watermark/
+
   crypto_vault.py             Passphrase-protected secret vault + AES-256-GCM image vault
+
   zero_watermark.py           YOLO ROI isolation, DWT/DCT key generation & extraction, NC scoring
-  tamper_seal.py               Scattered LSB seal, MAD localisation, attack-type classifier
-  metrics.py                   PSNR/SSIM/BER, phase timing, complexity estimate, CPU/memory profiler
-  ledger.py                    HMAC-signed ledger, dual-hash blacklist, forensic audit log
-  visualizers.py                One combined diagnostics figure (not four separate PNGs)
-  pipeline.py                   run_registration() and run_gateway() — the two end-to-end flows
+
+  tamper_seal.py              Semi-fragile DCT-QIM seal, MAD localisation, attack-type classifier
+
+  metrics.py                  PSNR/SSIM/BER, phase timing, complexity estimate, CPU/memory profiler
+
+  ledger.py                   HMAC-signed ledger, dual-hash blacklist, forensic audit log
+
+  visualizers.py              Combined diagnostics figure (ROI mask, DWT-DCT, anchor map, binary key)
+
+  pipeline.py                 run_registration() and run_gateway() — the two end-to-end flows
+
 integrations/
-  ipfs_storage.py                Pinata/IPFS backup — runs in the background, not in the critical path
-  google_drive_backup.py         Drive backup (de-duplicated from 4 near-identical notebook cells)
-  mongo_sync.py                  MongoDB Atlas sync
+
+  ipfs_storage.py             Pinata/IPFS backup & automated CID ledger patching
+
+  google_drive_backup.py      Google Drive backup for ledgers, logs, and gateway results
+
+  mongo_sync.py               MongoDB Atlas cloud sync with Base64 mask compression
+
 scripts/
-  run_profiler.py                 CPU/memory profiler as a standalone script (also callable via `main.py profile`)
-  batch_jpeg_attack.py             JPEG-recompression attack-sample generator
-data/                              Everything runtime-generated lives here (gitignored): ledger, vault,
-                                    secrets, logs, and outputs/{diagnostics,signed,heatmaps,recovered}/
+
+  run_profiler.py             CPU/memory profiler as a standalone script
+
+  batch_jpeg_attack.py        JPEG-recompression attack-sample generator across Q=[95, 85, 70, 50, 30]
+
+data/                         Runtime data (gitignored): ledger, vault, logs, and outputs/
 ```
 
-## What changed vs. the notebook (and why)
+## What Changed vs. the Notebook (and Why)
 
-- **Secrets moved to `.env`.** `MONGO_URI`, `PINATA_JWT`, the Google Drive
-  folder id, and local file paths were hardcoded in the notebook. They're
-  now read from environment variables only — see `.env.example`.
-  **If you're carrying over a real Mongo Atlas password from the notebook,
-  rotate it before putting it in `.env`** — a credential that ever sat in a
-  shareable `.ipynb` file should be treated as already exposed.
-- **One diagnostics figure instead of four.** `visualizers.py` combines the
-  ROI/frequency/anchor/key plots into a single `registration_diagnostics.png`,
-  and it's skippable entirely (`--no-diagnostics`) for batch/profiling runs,
-  so plotting never pollutes a CPU/memory measurement.
-- **All runtime data under `data/`.** Ledger, vault, logs, and generated
-  images no longer scatter across the working directory — one gitignored
-  folder, with clear subfolders for signed/recovered/heatmap outputs.
-- **IPFS upload is now background/optional (`--backup-ipfs`)**, not inside
-  the registration critical path — registration no longer waits on a
-  third-party network call to finish.
-- **Secrets load explicitly, not on import.** `crypto_vault.load_secrets()`
-  is called once from `main.py`; importing a module never prompts for a
-  passphrase as a side effect.
-- **Google Drive backup logic de-duplicated** from four near-identical
-  notebook cells into one function.
-- **CPU-time + peak-memory profiling added** (`watermark/metrics.py`,
-  `scripts/run_profiler.py`), scoped to registration only, excluding
-  matplotlib and network calls from the measured window (see the module
-  docstring for why).
+- **Semi-Fragile DCT-QIM Seal:** Replaced the hyper-fragile spatial LSB seal with Quantization Index Modulation in mid-frequency DCT blocks. Survives benign lossy JPEG compression (`Q≥65`) while preserving sensitivity to vehicle deletion and AI inpainting.
 
-## Known issues carried over as-is (not silently fixed here)
+- **3-Way Open-World Decision Logic:** Added an explicit correlation floor (`NC<0.50→NOT_REGISTERED`). Unregistered images are cleanly rejected without false accusations or spurious recovery attempts.
 
-This port preserves the original algorithm's behavior faithfully — it does
-**not** quietly change detection logic. A few things flagged in earlier
-review are still present and worth fixing deliberately, on your own timeline:
+- **Automated IPFS Cloud Vault:** Registration seamlessly encrypts raw evidence via AES-256-GCM and backs it up to Pinata IPFS, immediately patching the CID into the HMAC-signed ledger.
 
-1. **Resize-induced NC drift can cause false BLOCKs on legitimately resized
-   images** (`extract_key_v3`'s anchor remap uses an approximation of the
-   registered LL3 shape). The tamper-seal check already has a correct
-   "benign resize" path; the NC/ownership check doesn't yet defer to it.
-2. **No floor for "never registered" images.** The gateway currently reports
-   `BLOCK (TAMPERED)` for content that was simply never submitted for
-   registration, conflating "not in the system" with "tampered evidence."
-   Worth a three-way evaluation split (registered-untampered /
-   registered-tampered / never-registered) rather than two.
-3. **Permanent blacklist, no appeal path** — a false positive currently
-   locks an image out forever with no admin-override mechanism.
-4. **pHash blacklist/ledger lookups are still linear scans.** Fine at your
-   current scale; a BK-tree index over Hamming distance is the standard fix
-   if this needs to handle a much larger registered set.
+- **Secrets moved to `.env`:** `MONGO_URI`, `PINATA_JWT`, Google Drive folder IDs, and local paths are read from environment variables only.
 
-None of these needed to change to split the notebook into files, so they
-weren't touched — flagging them here so they don't quietly get forgotten.
+- **All runtime data isolated under `data/`:** Ledgers, vaults, audit logs, and generated heatmaps live in one gitignored directory with clear output subfolders.
+
+- **One combined diagnostics figure:** `visualizers.py` renders all registration stages into a single diagnostic visual, skippable (`--no-diagnostics`) during batch evaluation.
+
+- **Explicit secret management:** `crypto_vault.load_secrets()` is invoked deliberately at runtime; importing modules never prompts for passphrases.
+
+- **Hardware resource profiling added:** `scripts/run_profiler.py` and `watermark/metrics.py` measure steady-state CPU time and peak RSS memory, providing real metrics for edge/IoT camera deployments.
+
+## Known Issues & Future Scope
+
+1. **Resize-induced NC drift on non-power-of-two scaling:** `extract_key_v3`'s anchor remap uses an approximation of the registered LL3 shape, which can drift under non-standard aspect ratio alterations.
+
+2. **Permanent blacklist without administrative override:** A blacklisted image currently cannot be unlocked without modifying `tamper_blacklist.json`.
+
+3. **pHash lookups scale linearly:** At large database scale (`N>10,000`), linear pHash scans should be transitioned to a BK-tree index over Hamming space for `O(log N)` near-duplicate candidate retrieval.
