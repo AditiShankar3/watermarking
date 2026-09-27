@@ -1,13 +1,17 @@
 """
-pipeline.py — the two end-to-end flows: run_registration() (Person X) and
-run_gateway() (the upload-time authenticity check). This is a straight port
-of the notebook's Cell 7 / Cell 8 logic, with two changes:
-  1. Images are loaded from a given file path instead of an interactive
-     Colab/Jupyter upload widget (there's no notebook here to provide one).
-  2. Registration diagnostics are one combined figure, skippable entirely
-     via save_diagnostics=False (see visualizers.py).
-Everything else — the check order, the block reasons, the recover-and-
-deliver flow — is unchanged from the original.
+pipeline.py — End-to-end Registration and Verification Pipelines.
+
+Provides:
+  - run_registration(image_path, save_diagnostics=True, backup_ipfs=True)
+  - run_gateway(image_path, platform="police_portal", auto_recover=False)
+
+Key Features:
+  - 3-Way Open-World Decision Logic:
+      1. NC < 0.50                      -> NOT_REGISTERED (Unrelated image, skip recovery)
+      2. NC >= 0.75 & Seal Intact       -> ALLOW (Verified Original)
+      3. NC >= 0.50 & (Tampered / Low)  -> BLOCK (Tampered Evidence -> MAD Heatmap & Recovery)
+  - Automatic synchronous/async IPFS upload during registration.
+  - Zero-watermark DWT-DCT ownership extraction and semi-fragile seal checking.
 """
 import os
 import time
@@ -23,8 +27,12 @@ from watermark.ledger import (
     load_all_ledger_entries, save_to_ledger, log_audit_event, _verify_record,
     _sign_record, LedgerTamperedError,
 )
-from watermark.metrics import PhaseTimer, compute_psnr, compute_ssim, compute_ber_from_accuracy, estimate_complexity
-from watermark.tamper_seal import embed_tamper_signature, verify_tamper_signature, localise_tamper, classify_attack_type
+from watermark.metrics import (
+    PhaseTimer, compute_psnr, compute_ssim, compute_ber_from_accuracy, estimate_complexity
+)
+from watermark.tamper_seal import (
+    embed_tamper_signature, verify_tamper_signature, localise_tamper, classify_attack_type
+)
 from watermark.visualizers import show_registration_diagnostics, show_tamper_localisation
 from watermark.zero_watermark import (
     phase1_ai_roi_isolation, register_master_key_v3, phase2_frequency_topology,
@@ -55,7 +63,7 @@ def _append_result(record: dict):
         json.dump(results, f, indent=2)
 
 
-# ── Post-delivery tamper lock (unchanged logic, ledger-file-backed) ─────────
+# ── Post-delivery tamper lock ─────────────────────────────────────────────────
 def _log_delivery(img_bgr, filename):
     import json
     img_hash = get_image_hash(img_bgr)
@@ -148,9 +156,18 @@ def deliver_recovered_original(entry, suspect_filename):
 
 # ── ▶ REGISTRATION (Person X) ────────────────────────────────────────────────
 def run_registration(image_path: str, save_diagnostics: bool = True, backup_ipfs: bool = True):
+    """
+    Registers an original traffic surveillance image:
+    1. Isolates static background using YOLOv8 instance segmentation.
+    2. Forges a 256-bit structural zero-watermark via DWT + DCT polarized anchoring.
+    3. Embeds a semi-fragile tamper seal in mid-frequency DCT coefficients.
+    4. Encrypts the raw original in AES-256-GCM vault.
+    5. Saves signed metadata to HMAC ledger and backs up ciphertext to Pinata IPFS.
+    """
     img, filename = load_image(image_path)
     print(f"\n📸  Registering: {filename}")
 
+    # Step 1: Blacklist pre-check
     flagged, bl_record, match_type = is_blacklisted(img)
     if flagged:
         match_desc = ("exact pixel match" if match_type == "exact"
@@ -161,39 +178,43 @@ def run_registration(image_path: str, save_diagnostics: bool = True, backup_ipfs
                          decision="REFUSED", details={"match_type": match_type, "reason": bl_record["reason"]})
         return None, None
 
+    # Step 2: YOLO ROI Isolation
     print("\nPhase 1 - YOLO ROI masking ...")
     img_rgb, M_binary, M_buffer = phase1_ai_roi_isolation(img)
 
+    # Step 3: Zero-watermark key generation
     print("Phase 2-5 - Frequency topology + key generation ...")
     W_key, P_anchors_all, bg, LL3, dct_LL3 = register_master_key_v3(img, M_buffer)
 
     if save_diagnostics:
         import cv2 as _cv2
-        gray_bg_for_plot = _cv2.cvtColor(
-            __import__("watermark.zero_watermark", fromlist=["robust_prefilter_v2"]).robust_prefilter_v2(img),
-            _cv2.COLOR_BGR2GRAY).astype("float64")
+        from watermark.zero_watermark import robust_prefilter_v2
+        gray_bg_for_plot = _cv2.cvtColor(robust_prefilter_v2(img), _cv2.COLOR_BGR2GRAY).astype("float64")
         show_registration_diagnostics(img_rgb, M_binary, M_buffer, gray_bg_for_plot,
                                        LL3, dct_LL3, P_anchors_all, W_key)
 
-    print("\nEmbedding scattered tamper seal ...")
+    # Step 4: Embed semi-fragile tamper seal
+    print("\nEmbedding semi-fragile tamper seal ...")
     img_signed, tamper_hash = embed_tamper_signature(img)
 
+    # Step 5: AES-256-GCM vault encryption
     print("Encrypting original -> vault ...")
     base_name = os.path.splitext(filename)[0]
     vault_name = encrypt_image(img, vault_name=base_name)
 
+    # Step 6: Save to local HMAC-signed ledger
     img_hash = save_to_ledger(filename, img, M_buffer, W_key, P_anchors_all, tamper_hash, vault_name)
 
-        # Inside run_registration() after encrypt_image:
+    # Step 7: Push to IPFS
     if backup_ipfs:
         try:
             from integrations.ipfs_storage import backup_to_ipfs_sync
-        except ImportError:
-            from ipfs_storage import backup_to_ipfs_sync
+            vault_path = os.path.join(config.VAULT_DIR, vault_name + ".enc")
+            backup_to_ipfs_sync(vault_path, img_hash)
+        except Exception as e:
+            print(f"⚠️  IPFS integration error: {e}")
 
-        vault_path = os.path.join(config.VAULT_DIR, vault_name + ".enc")
-        backup_to_ipfs_sync(vault_path, img_hash)
-
+    # Step 8: Export signed copy
     signed_name = base_name + "_signed" + os.path.splitext(filename)[1]
     signed_path = os.path.join(config.SIGNED_DIR, signed_name)
     cv2.imwrite(signed_path, img_signed)
@@ -208,8 +229,18 @@ def run_registration(image_path: str, save_diagnostics: bool = True, backup_ipfs
     return img, filename
 
 
-# ── ▶ CONTENT AUTHENTICITY GATEWAY (verification) ────────────────────────────
+# ── ▶ CONTENT AUTHENTICITY GATEWAY (Verification) ────────────────────────────
 def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: bool = False):
+    """
+    Multi-stage verification pipeline with 3-Way Open-World Decision Logic:
+      - Stage 1: Post-delivery tamper check
+      - Stage 2: Exact registered original check (O(1))
+      - Stage 3: Dual-hash blacklist check (Exact SHA-256 + Perceptual Hash)
+      - Stage 4: Ledger HMAC validation & Zero-watermark correlation scan
+      - Stage 5: 3-Way Decision Classification (NOT_REGISTERED / ALLOW / BLOCK)
+      - Stage 6: MAD Tamper Localisation Heatmap (on BLOCK)
+      - Stage 7: Heuristic Attack Classification & Original Vault Recovery
+    """
     if platform not in config.PLATFORMS:
         raise ValueError(f"Choose from: {list(config.PLATFORMS.keys())}")
     cfg = config.PLATFORMS[platform]
@@ -219,7 +250,7 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
     pt = PhaseTimer()
     t_start = time.time()
 
-    # Post-delivery checks
+    # ── Check 1: Post-delivery tamper checks ─────────────────────────────────
     is_clean, dl_record = _is_delivered_original(suspect_img)
     if is_clean:
         print(f"\n✅  ALLOW - verified clean delivered original ({dl_record['filename']})")
@@ -239,7 +270,7 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
                                                      "original_delivery": td_record["filename"]})
         return "BLOCK"
 
-    # Exact registered original?
+    # ── Check 2: Exact registered original? (O(1) fast-path) ─────────────────
     try:
         entries = load_all_ledger_entries()
         suspect_hash = get_image_hash(suspect_img)
@@ -265,7 +296,7 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
                          decision="ALLOW", details={"platform": platform, "registered_as": orig_match["image_filename"]})
         return "ALLOW"
 
-    # Blacklist
+    # ── Check 3: Dual-hash blacklist ─────────────────────────────────────────
     flagged, bl_record, match_type = is_blacklisted(suspect_img)
     if flagged:
         print(f"\n⛔  BLOCK - permanently blacklisted ({match_type} match, "
@@ -285,7 +316,7 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
                                                      "reason": bl_record["reason"]})
         return "BLOCK"
 
-    # NC ownership scan over the full ledger
+    # ── Check 4: NC ownership scan over the ledger ───────────────────────────
     best_nc, best_acc, best_entry = 0.0, 0.0, None
     second_best_nc = 0.0
     with pt.phase("nc_verification"):
@@ -301,10 +332,39 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
             elif nc > second_best_nc:
                 second_best_nc = nc
 
-    if best_entry is None:
-        print("❌  No matching registered image.")
-        return "BLOCK"
+    # ── Check 5: 3-WAY OPEN-WORLD DECISION LOGIC ─────────────────────────────
+    # Statistical floor: random unrelated images correlate near ~0.0 to 0.40
+    UNREGISTERED_FLOOR = 0.50
 
+    if best_entry is None or best_nc < UNREGISTERED_FLOOR:
+        # CASE 1: Completely unrelated / never-registered image
+        decision = "NOT_REGISTERED"
+        verdict = "❌ NOT REGISTERED"
+        attack_label = "Unregistered / External Image"
+        attack_detail = f"Maximum NC score ({best_nc:.4f}) is below the registration floor ({UNREGISTERED_FLOOR})."
+        block_reasons = ["Image does not match any registered camera evidence in the custody ledger."]
+        
+        print(f"\n{verdict}  |  NC={best_nc:.4f} < {UNREGISTERED_FLOOR}")
+        print("  This image was never registered in the system. Skipping recovery and blacklist.")
+
+        result_record = {
+            "filename": suspect_filename, "image_shape": list(suspect_img.shape),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "decision": decision, "tamper_status": "NOT_REGISTERED",
+            "seal_intact": False, "content_intact": False,
+            "nc_score": round(float(best_nc), 4), "second_best_nc": round(float(second_best_nc), 4),
+            "bit_accuracy": round(float(best_acc), 2), "ber": compute_ber_from_accuracy(best_acc),
+            "n_tampered_cells": 0, "resized": False,
+            "block_reasons": block_reasons, "attack_type": attack_label, "attack_detail": attack_detail,
+            "phase_times_s": pt.summary(), "recovery_attempted": False, "recovery_success": False,
+            "recovery_time_s": None, "check_time_s": round(time.time() - t_start, 3),
+        }
+        _append_result(result_record)
+        log_audit_event(decision, filename=suspect_filename, img_bgr=suspect_img, decision=decision,
+                         details={"platform": platform, "nc_score": round(float(best_nc), 4)})
+        return decision
+
+    # If best_nc >= UNREGISTERED_FLOOR, image belongs to a registered scene in our vault:
     eh, ew = best_entry["image_shape"][:2]
     img_r = cv2.resize(suspect_img, (ew, eh)) if suspect_img.shape[:2] != (eh, ew) else suspect_img.copy()
 
@@ -312,11 +372,23 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
         tamper = verify_tamper_signature(img_r, best_entry["tamper_hash"], tuple(best_entry["image_shape"]))
         tamper_ok = tamper["seal_intact"]
 
+    ownership_ok = best_nc >= cfg["nc_threshold"]
+    block_reasons = []
+    
+    if not tamper_ok:
+        block_reasons.append(f"Tamper seal broken - {tamper['detail']}")
+    if not ownership_ok:
+        block_reasons.append(f"NC score {best_nc:.4f} below threshold {cfg['nc_threshold']}")
+
+    # CASE 2 & 3: ALLOW (Untampered Original) vs BLOCK (Tampered Evidence)
+    decision = "BLOCK" if block_reasons else "ALLOW"
+
+    # Tamper localisation (executed ONLY when registered evidence is tampered)
     n_tampered, heatmap_path, recovered_orig = 0, None, None
     tamper_map, mad_grid = None, None
-    if not tamper_ok:
+    if decision == "BLOCK":
         with pt.phase("localisation"):
-            print("\n🔬  Running tamper localisation ...")
+            print("\n🔬  Running tamper localisation on registered evidence ...")
             recovered_orig = recover_original(best_entry)
             if recovered_orig is not None:
                 tamper_map, mad_grid, cell_h, cell_w = localise_tamper(recovered_orig, suspect_img)
@@ -324,14 +396,6 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
                 heatmap_path = show_tamper_localisation(
                     recovered_orig, suspect_img, tamper_map, mad_grid, cell_h, cell_w,
                     save_name=f"{os.path.splitext(suspect_filename)[0]}_heatmap.png")
-
-    ownership_ok = best_nc >= cfg["nc_threshold"]
-    block_reasons = []
-    if not tamper_ok:
-        block_reasons.append(f"Tamper seal broken - {tamper['detail']}")
-    if not ownership_ok:
-        block_reasons.append(f"NC score {best_nc:.4f} below threshold {cfg['nc_threshold']}")
-    decision = "BLOCK" if block_reasons else "ALLOW"
 
     psnr_val, ssim_val = None, None
     if recovered_orig is not None:
@@ -356,7 +420,7 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
                               "seal_intact": bool(tamper_ok), "block_reasons": block_reasons,
                               "attack_type": attack_label})
 
-    verdict = "🚫 BLOCK" if decision == "BLOCK" else "✅ ALLOW"
+    verdict = "🚫 BLOCK (TAMPERED EVIDENCE)" if decision == "BLOCK" else "✅ ALLOW (VERIFIED ORIGINAL)"
     print(f"\n{verdict}  |  NC={best_nc:.4f} (threshold {cfg['nc_threshold']})  "
           f"|  seal_intact={tamper_ok}  |  attack_type={attack_label}")
     if heatmap_path:
@@ -382,6 +446,7 @@ def run_gateway(image_path: str, platform: str = "police_portal", auto_recover: 
         "computational_complexity": complexity_info,
     }
 
+    # Recovery prompt
     if decision == "BLOCK":
         do_recover = auto_recover
         if not auto_recover:
