@@ -16,13 +16,11 @@ from watermark.crypto_vault import get_master_seed
 
 
 # ── QIM Quantization Step ────────────────────────────────────────────────────
-# delta controls robustness vs visual imperceptibility.
-# delta=20.0 yields high PSNR (>42 dB) while surviving lossy JPEG compression down to Q=60.
-QIM_DELTA = 20.0
+# delta=32.0 is standard for 8x8 DCT mid-low band to survive JPEG Q>=50
+QIM_DELTA = 32.0
 
-# Mid-frequency DCT zigzag position to embed bit (row 3, col 2 in an 8x8 block)
-# Mid-frequencies balance robustness against compression and sensitivity to real tampering.
-EMBED_R, EMBED_C = 3, 2
+# Low-mid frequency coefficient (row 1, col 2) preserves structure under JPEG
+EMBED_R, EMBED_C = 1, 2
 
 
 def _get_qim_block_positions(img_bgr, n_bits, master_seed=None):
@@ -64,13 +62,12 @@ def _bits_to_hash(bits):
     )
 
 
-# ── QIM Embedding in DCT Domain ──────────────────────────────────────────────
+# ── Robust QIM Embedding in DCT Domain ───────────────────────────────────────
 def _embed_qim(img_bgr, bits, master_seed=None, delta=QIM_DELTA):
     """
-    Embeds bits into mid-frequency DCT coefficients of selected 8x8 blocks (Blue channel).
-    QIM Rule:
-        c' = round((c - d(b)) / delta) * delta + d(b)
-        where d(0) = -delta/4, d(1) = +delta/4
+    Standard Even/Odd Lattice Quantization Modulation (QIM).
+    Even multiple of delta -> Bit 0
+    Odd multiple of delta  -> Bit 1
     """
     out = img_bgr.copy().astype(np.float32)
     coords = _get_qim_block_positions(img_bgr, len(bits), master_seed)
@@ -78,11 +75,14 @@ def _embed_qim(img_bgr, bits, master_seed=None, delta=QIM_DELTA):
     for (r, c), bit in zip(coords, bits):
         block = out[r:r+8, c:c+8, 0]  # Blue channel
         dct_block = cv2.dct(block)
-
         val = dct_block[EMBED_R, EMBED_C]
-        d = (delta / 4.0) if bit == 1 else (-delta / 4.0)
-        # Quantize to closest lattice point
-        dct_block[EMBED_R, EMBED_C] = np.round((val - d) / delta) * delta + d
+
+        # Quantize to Even (bit 0) or Odd (bit 1) multiple of delta
+        step = 2.0 * delta
+        if bit == 0:
+            dct_block[EMBED_R, EMBED_C] = np.round(val / step) * step
+        else:
+            dct_block[EMBED_R, EMBED_C] = np.round((val - delta) / step) * step + delta
 
         out[r:r+8, c:c+8, 0] = cv2.idct(dct_block)
 
@@ -92,8 +92,7 @@ def _embed_qim(img_bgr, bits, master_seed=None, delta=QIM_DELTA):
 
 def _extract_qim(img_bgr, n_bits, master_seed=None, delta=QIM_DELTA):
     """
-    Extracts bits from mid-frequency DCT coefficients.
-    Measures distance to d(0) vs d(1) reconstruction points.
+    Extracts bit by finding nearest even vs odd lattice point.
     """
     img_f = img_bgr.astype(np.float32)
     coords = _get_qim_block_positions(img_bgr, n_bits, master_seed)
@@ -104,12 +103,15 @@ def _extract_qim(img_bgr, n_bits, master_seed=None, delta=QIM_DELTA):
         dct_block = cv2.dct(block)
         val = dct_block[EMBED_R, EMBED_C]
 
-        # Calculate remainder modulo delta
-        remainder = val % delta
-        # If remainder is closer to delta * 0.25 (bit 1) than delta * 0.75 (bit 0)
-        dist_1 = abs(remainder - (0.25 * delta))
-        dist_0 = min(abs(remainder - (0.75 * delta)), abs(remainder - (-0.25 * delta)))
-        bits.append(1 if dist_1 < dist_0 else 0)
+        # Distance to nearest even lattice point vs nearest odd lattice point
+        step = 2.0 * delta
+        q_even = np.round(val / step) * step
+        q_odd  = np.round((val - delta) / step) * step + delta
+
+        dist_even = abs(val - q_even)
+        dist_odd  = abs(val - q_odd)
+
+        bits.append(0 if dist_even <= dist_odd else 1)
 
     return bits
 
