@@ -1,0 +1,275 @@
+bit_acc,condition,flagged,ground_truth_should_flag,image,nc,nc_retained,resized,seal_bit_acc,seal_intact,table,watermarked_psnr_db,watermarked_ssim
+99.21875,Untouched Signed,,,100103,0.9843749999961549,True,False,100.0,True,robustness,59.46,0.9997
+99.21875,JPEG Q=90,,,100103,0.9843749999961549,True,False,100.0,True,robustness,59.46,0.9997
+99.21875,JPEG Q=75,,,100103,0.9843749999961549,True,False,100.0,True,robustness,59.46,0.9997
+98.828125,JPEG Q=50,,,100103,0.9765624999961854,True,False,99.21875,False,robustness,59.46,0.9997
+99.21875,Brightness (+20%),,,100103,0.9843749999961549,True,False,94.140625,False,robustness,59.46,0.9997
+98.046875,Contrast (1.25x),,,100103,0.9609374999962463,True,False,91.40625,False,robustness,59.46,0.9997
+47.265625,True Resize (0.75x),True,True,100103,-0.05468749999978638,,True,91.015625,False,detection,,
+56.640625,True Crop (top 10%),True,True,100103,0.13281249999948122,,True,50.0,False,detection,,
+86.328125,Rotation (5 deg),True,True,100103,0.7265624999971619,,False,51.953125,False,detection,,
+46.484375,AI-Regeneration (real),True,True,100103,-0.07031249999972534,,True,51.171875,False,detection,,
+51.5625,Unrelated Image (never registered),True,True,100103,0.03124999999987793,,True,51.5625,False,detection,,
+99.21875,Untouched Signed,,,100523,0.9843749999961549,True,False,100.0,True,robustness,58.98,0.9997
+99.21875,JPEG Q=90,,,100523,0.9843749999961549,True,False,100.0,True,robustness,58.98,0.9997
+98.4375,JPEG Q=75,,,100523,0.9687499999962159,True,False,100.0,True,robustness,58.98,0.9997
+98.4375,JPEG Q=50,,,100523,0.9687499999962159,True,False,99.21875,False,robustness,58.98,0.9997
+99.21875,Brightness (+20%),,,100523,0.9843749999961549,True,False,93.359375,False,robustness,58.98,0.9997
+98.4375,Contrast (1.25x),,,100523,0.9687499999962159,True,False,90.234375,False,robustness,58.98,0.9997
+49.609375,True Resize (0.75x),True,True,100523,-0.007812499999969483,,True,92.578125,False,detection,,
+53.125,True Crop (top 10%),True,True,100523,0.06249999999975586,,True,48.4375,False,detection,,
+88.671875,Rotation (5 deg),True,True,100523,0.7734374999969788,,False,50.78125,False,detection,,
+45.703125,AI-Regeneration (real),True,True,100523,-0.08593749999966431,,True,49.609375,False,detection,,
+51.171875,Unrelated Image (never registered),True,True,100523,0.023437499999908448,,True,48.828125,False,detection,,
+99.21875,Untouched Signed,,,10357,0.9843749999961549,True,False,100.0,True,robustness,59.56,0.9997
+98.828125,JPEG Q=90,,,10357,0.9765624999961854,True,False,100.0,True,robustness,59.56,0.9997
+100.0,JPEG Q=75,,,10357,0.9999999999960938,True,False,100.0,True,robustness,59.56,0.9997
+99.609375,JPEG Q=50,,,10357,0.9921874999961243,True,False,100.0,True,robustness,59.56,0.9997
+98.828125,Brightness (+20%),,,10357,0.9765624999961854,True,False,97.65625,False,robustness,59.56,0.9997
+98.828125,Contrast (1.25x),,,10357,0.9765624999961854,True,False,95.703125,False,robustness,59.56,0.9997
+46.09375,True Resize (0.75x),True,True,10357,-0.07812499999969483,,True,97.65625,False,detection,,
+52.34375,True Crop (top 10%),True,True,10357,0.046874999999816896,,True,51.953125,False,detection,,
+86.71875,Rotation (5 deg),True,True,10357,0.7343749999971314,,False,43.75,False,detection,,
+55.078125,AI-Regeneration (real),True,True,10357,0.10156249999960328,,True,50.390625,False,detection,,
+48.046875,Unrelated Image (never registered),True,True,10357,-0.039062499999847414,,True,48.828125,False,detection,,
+98.4375,Untouched Signed,,,105219,0.9687499999962159,True,False,100.0,True,robustness,61.27,0.9995
+98.4375,JPEG Q=90,,,105219,0.9687499999962159,True,False,100.0,True,robustness,61.27,0.9995
+99.609375,JPEG Q=75,,,105219,0.9921874999961243,True,False,100.0,True,robustness,61.27,0.9995
+97.65625,JPEG Q=50,,,105219,0.9531249999962769,True,False,100.0,True,robustness,61.27,0.9995
+99.609375,Brightness (+20%),,,105219,0.9921874999961243,True,False,98.4375,False,robustness,61.27,0.9995
+99.609375,Contrast (1.25x),,,105219,0.9921874999961243,True,False,98.4375,False,robustness,61.27,0.9995
+53.515625,True Resize (0.75x),True,True,105219,0.07031249999972534,,True,97.265625,False,detection,,
+56.25,True Crop (top 10%),True,True,105219,0.12499999999951172,,True,52.34375,False,detection,,
+91.015625,Rotation (5 deg),True,True,105219,0.8203124999967957,,False,55.46875,False,detection,,
+48.046875,AI-Regeneration (real),True,True,105219,-0.039062499999847414,,True,52.734375,False,detection,,
+61.71875,Unrelated Image (never registered),True,True,105219,0.23437499999908448,,True,54.296875,False,detection,,
+98.828125,Untouched Signed,,,11032,0.9765624999961854,True,False,100.0,True,robustness,59.41,0.9995
+98.828125,JPEG Q=90,,,11032,0.9765624999961854,True,False,100.0,True,robustness,59.41,0.9995
+97.65625,JPEG Q=75,,,11032,0.9531249999962769,True,False,100.0,True,robustness,59.41,0.9995
+99.609375,JPEG Q=50,,,11032,0.9921874999961243,True,False,100.0,True,robustness,59.41,0.9995
+99.609375,Brightness (+20%),,,11032,0.9921874999961243,True,False,95.3125,False,robustness,59.41,0.9995
+99.21875,Contrast (1.25x),,,11032,0.9843749999961549,True,False,96.484375,False,robustness,59.41,0.9995
+46.09375,True Resize (0.75x),True,True,11032,-0.07812499999969483,,True,97.65625,False,detection,,
+48.046875,True Crop (top 10%),True,True,11032,-0.039062499999847414,,True,52.734375,False,detection,,
+85.15625,Rotation (5 deg),True,True,11032,0.7031249999972534,,False,51.5625,False,detection,,
+46.875,AI-Regeneration (real),True,True,11032,-0.06249999999975586,,True,50.78125,False,detection,,
+50.0,Unrelated Image (never registered),True,True,11032,0.0,,True,51.5625,False,detection,,
+98.4375,Untouched Signed,,,111015,0.9687499999962159,True,False,100.0,True,robustness,59.06,0.9995
+98.4375,JPEG Q=90,,,111015,0.9687499999962159,True,False,100.0,True,robustness,59.06,0.9995
+99.609375,JPEG Q=75,,,111015,0.9921874999961243,True,False,100.0,True,robustness,59.06,0.9995
+98.828125,JPEG Q=50,,,111015,0.9765624999961854,True,False,100.0,True,robustness,59.06,0.9995
+98.828125,Brightness (+20%),,,111015,0.9765624999961854,True,False,95.3125,False,robustness,59.06,0.9995
+99.21875,Contrast (1.25x),,,111015,0.9843749999961549,True,False,95.703125,False,robustness,59.06,0.9995
+45.703125,True Resize (0.75x),True,True,111015,-0.08593749999966431,,True,96.875,False,detection,,
+49.21875,True Crop (top 10%),True,True,111015,-0.015624999999938965,,True,56.640625,False,detection,,
+85.15625,Rotation (5 deg),True,True,111015,0.7031249999972534,,False,54.296875,False,detection,,
+40.625,AI-Regeneration (real),True,True,111015,-0.18749999999926759,,True,55.46875,False,detection,,
+47.65625,Unrelated Image (never registered),True,True,111015,-0.046874999999816896,,True,53.125,False,detection,,
+99.21875,Untouched Signed,,,122253,0.9843749999961549,True,False,100.0,True,robustness,58.36,0.9994
+99.21875,JPEG Q=90,,,122253,0.9843749999961549,True,False,100.0,True,robustness,58.36,0.9994
+99.21875,JPEG Q=75,,,122253,0.9843749999961549,True,False,100.0,True,robustness,58.36,0.9994
+99.21875,JPEG Q=50,,,122253,0.9843749999961549,True,False,100.0,True,robustness,58.36,0.9994
+98.828125,Brightness (+20%),,,122253,0.9765624999961854,True,False,98.046875,False,robustness,58.36,0.9994
+98.4375,Contrast (1.25x),,,122253,0.9687499999962159,True,False,95.703125,False,robustness,58.36,0.9994
+53.515625,True Resize (0.75x),True,True,122253,0.07031249999972534,,True,96.875,False,detection,,
+55.859375,True Crop (top 10%),True,True,122253,0.11718749999954224,,True,52.734375,False,detection,,
+91.796875,Rotation (5 deg),True,True,122253,0.8359374999967346,,False,54.296875,False,detection,,
+55.078125,AI-Regeneration (real),True,True,122253,0.10156249999960328,,True,53.90625,False,detection,,
+50.390625,Unrelated Image (never registered),True,True,122253,0.007812499999969483,,True,55.859375,False,detection,,
+99.21875,Untouched Signed,,,122674,0.9843749999961549,True,False,100.0,True,robustness,59.59,0.9998
+99.21875,JPEG Q=90,,,122674,0.9843749999961549,True,False,100.0,True,robustness,59.59,0.9998
+99.21875,JPEG Q=75,,,122674,0.9843749999961549,True,False,100.0,True,robustness,59.59,0.9998
+99.21875,JPEG Q=50,,,122674,0.9843749999961549,True,False,100.0,True,robustness,59.59,0.9998
+99.21875,Brightness (+20%),,,122674,0.9843749999961549,True,False,93.75,False,robustness,59.59,0.9998
+98.046875,Contrast (1.25x),,,122674,0.9609374999962463,True,False,92.1875,False,robustness,59.59,0.9998
+40.625,True Resize (0.75x),True,True,122674,-0.18749999999926759,,True,93.75,False,detection,,
+57.421875,True Crop (top 10%),True,True,122674,0.14843749999942019,,True,53.90625,False,detection,,
+90.625,Rotation (5 deg),True,True,122674,0.8124999999968262,,False,50.0,False,detection,,
+44.921875,AI-Regeneration (real),True,True,122674,-0.10156249999960328,,True,54.296875,False,detection,,
+47.65625,Unrelated Image (never registered),True,True,122674,-0.046874999999816896,,True,55.078125,False,detection,,
+98.828125,Untouched Signed,,,130001,0.9765624999961854,True,False,100.0,True,robustness,59.12,0.9997
+98.828125,JPEG Q=90,,,130001,0.9765624999961854,True,False,100.0,True,robustness,59.12,0.9997
+99.21875,JPEG Q=75,,,130001,0.9843749999961549,True,False,100.0,True,robustness,59.12,0.9997
+99.21875,JPEG Q=50,,,130001,0.9843749999961549,True,False,100.0,True,robustness,59.12,0.9997
+99.21875,Brightness (+20%),,,130001,0.9843749999961549,True,False,90.625,False,robustness,59.12,0.9997
+99.21875,Contrast (1.25x),,,130001,0.9843749999961549,True,False,88.671875,False,robustness,59.12,0.9997
+51.5625,True Resize (0.75x),True,True,130001,0.03124999999987793,,True,90.625,False,detection,,
+47.265625,True Crop (top 10%),True,True,130001,-0.05468749999978638,,True,52.34375,False,detection,,
+80.078125,Rotation (5 deg),True,True,130001,0.6015624999976502,,False,51.953125,False,detection,,
+42.96875,AI-Regeneration (real),True,True,130001,-0.1406249999994507,,True,51.5625,False,detection,,
+46.09375,Unrelated Image (never registered),True,True,130001,-0.07812499999969483,,True,50.390625,False,detection,,
+98.4375,Untouched Signed,,,130118,0.9687499999962159,True,False,100.0,True,robustness,59.17,0.9995
+98.4375,JPEG Q=90,,,130118,0.9687499999962159,True,False,100.0,True,robustness,59.17,0.9995
+98.4375,JPEG Q=75,,,130118,0.9687499999962159,True,False,100.0,True,robustness,59.17,0.9995
+98.4375,JPEG Q=50,,,130118,0.9687499999962159,True,False,100.0,True,robustness,59.17,0.9995
+99.21875,Brightness (+20%),,,130118,0.9843749999961549,True,False,98.046875,False,robustness,59.17,0.9995
+98.4375,Contrast (1.25x),,,130118,0.9687499999962159,True,False,97.265625,False,robustness,59.17,0.9995
+47.265625,True Resize (0.75x),True,True,130118,-0.05468749999978638,,True,98.828125,False,detection,,
+66.015625,True Crop (top 10%),True,True,130118,0.3203124999987488,,True,52.734375,False,detection,,
+64.453125,Rotation (5 deg),True,True,130118,0.28906249999887085,,False,50.390625,False,detection,,
+52.34375,AI-Regeneration (real),True,True,130118,0.046874999999816896,,True,51.171875,False,detection,,
+46.875,Unrelated Image (never registered),True,True,130118,-0.06249999999975586,,True,53.515625,False,detection,,
+99.21875,Untouched Signed,,,134409,0.9843749999961549,True,False,100.0,True,robustness,59.38,0.9996
+99.21875,JPEG Q=90,,,134409,0.9843749999961549,True,False,100.0,True,robustness,59.38,0.9996
+98.828125,JPEG Q=75,,,134409,0.9765624999961854,True,False,100.0,True,robustness,59.38,0.9996
+98.828125,JPEG Q=50,,,134409,0.9765624999961854,True,False,100.0,True,robustness,59.38,0.9996
+99.21875,Brightness (+20%),,,134409,0.9843749999961549,True,False,95.703125,False,robustness,59.38,0.9996
+98.828125,Contrast (1.25x),,,134409,0.9765624999961854,True,False,94.140625,False,robustness,59.38,0.9996
+44.140625,True Resize (0.75x),True,True,134409,-0.11718749999954224,,True,96.484375,False,detection,,
+51.171875,True Crop (top 10%),True,True,134409,0.023437499999908448,,True,51.171875,False,detection,,
+89.453125,Rotation (5 deg),True,True,134409,0.7890624999969178,,False,51.171875,False,detection,,
+44.53125,AI-Regeneration (real),True,True,134409,-0.10937499999957276,,True,48.828125,False,detection,,
+53.90625,Unrelated Image (never registered),True,True,134409,0.07812499999969483,,True,47.65625,False,detection,,
+98.4375,Untouched Signed,,,137634,0.9687499999962159,True,False,100.0,True,robustness,60.13,0.9996
+98.4375,JPEG Q=90,,,137634,0.9687499999962159,True,False,100.0,True,robustness,60.13,0.9996
+99.21875,JPEG Q=75,,,137634,0.9843749999961549,True,False,100.0,True,robustness,60.13,0.9996
+98.4375,JPEG Q=50,,,137634,0.9687499999962159,True,False,100.0,True,robustness,60.13,0.9996
+99.609375,Brightness (+20%),,,137634,0.9921874999961243,True,False,94.140625,False,robustness,60.13,0.9996
+98.828125,Contrast (1.25x),,,137634,0.9765624999961854,True,False,94.140625,False,robustness,60.13,0.9996
+51.953125,True Resize (0.75x),True,True,137634,0.039062499999847414,,True,94.53125,False,detection,,
+43.75,True Crop (top 10%),True,True,137634,-0.12499999999951172,,True,51.171875,False,detection,,
+89.0625,Rotation (5 deg),True,True,137634,0.7812499999969483,,False,52.734375,False,detection,,
+50.390625,AI-Regeneration (real),True,True,137634,0.007812499999969483,,True,50.78125,False,detection,,
+41.40625,Unrelated Image (never registered),True,True,137634,-0.17187499999932862,,True,54.296875,False,detection,,
+99.21875,Untouched Signed,,,141588,0.9843749999961549,True,False,100.0,True,robustness,59.66,0.9996
+99.21875,JPEG Q=90,,,141588,0.9843749999961549,True,False,100.0,True,robustness,59.66,0.9996
+99.21875,JPEG Q=75,,,141588,0.9843749999961549,True,False,100.0,True,robustness,59.66,0.9996
+98.828125,JPEG Q=50,,,141588,0.9765624999961854,True,False,99.21875,False,robustness,59.66,0.9996
+98.046875,Brightness (+20%),,,141588,0.9609374999962463,True,False,96.875,False,robustness,59.66,0.9996
+99.21875,Contrast (1.25x),,,141588,0.9843749999961549,True,False,98.046875,False,robustness,59.66,0.9996
+44.53125,True Resize (0.75x),True,True,141588,-0.10937499999957276,,True,97.65625,False,detection,,
+52.34375,True Crop (top 10%),True,True,141588,0.046874999999816896,,True,48.046875,False,detection,,
+76.5625,Rotation (5 deg),True,True,141588,0.5312499999979249,,False,49.609375,False,detection,,
+48.828125,Unrelated Image (never registered),True,True,141588,-0.023437499999908448,,True,51.953125,False,detection,,
+98.4375,Untouched Signed,,,142025,0.9687499999962159,True,False,100.0,True,robustness,59.61,0.9996
+98.4375,JPEG Q=90,,,142025,0.9687499999962159,True,False,100.0,True,robustness,59.61,0.9996
+99.21875,JPEG Q=75,,,142025,0.9843749999961549,True,False,100.0,True,robustness,59.61,0.9996
+99.21875,JPEG Q=50,,,142025,0.9843749999961549,True,False,100.0,True,robustness,59.61,0.9996
+99.21875,Brightness (+20%),,,142025,0.9843749999961549,True,False,98.046875,False,robustness,59.61,0.9996
+99.21875,Contrast (1.25x),,,142025,0.9843749999961549,True,False,98.046875,False,robustness,59.61,0.9996
+52.34375,True Resize (0.75x),True,True,142025,0.046874999999816896,,True,99.21875,False,detection,,
+49.609375,True Crop (top 10%),True,True,142025,-0.007812499999969483,,True,52.34375,False,detection,,
+87.109375,Rotation (5 deg),True,True,142025,0.7421874999971009,,False,46.875,False,detection,,
+42.1875,AI-Regeneration (real),True,True,142025,-0.15624999999938965,,True,52.34375,False,detection,,
+48.046875,Unrelated Image (never registered),True,True,142025,-0.039062499999847414,,True,50.78125,False,detection,,
+98.4375,Untouched Signed,,,311217,0.9687499999962159,True,False,100.0,True,robustness,59.68,0.9996
+98.4375,JPEG Q=90,,,311217,0.9687499999962159,True,False,100.0,True,robustness,59.68,0.9996
+99.21875,JPEG Q=75,,,311217,0.9843749999961549,True,False,100.0,True,robustness,59.68,0.9996
+98.4375,JPEG Q=50,,,311217,0.9687499999962159,True,False,100.0,True,robustness,59.68,0.9996
+98.4375,Brightness (+20%),,,311217,0.9687499999962159,True,False,99.21875,False,robustness,59.68,0.9996
+98.046875,Contrast (1.25x),,,311217,0.9609374999962463,True,False,96.484375,False,robustness,59.68,0.9996
+47.265625,True Resize (0.75x),True,True,311217,-0.05468749999978638,,True,99.21875,False,detection,,
+53.515625,True Crop (top 10%),True,True,311217,0.07031249999972534,,True,46.484375,False,detection,,
+79.6875,Rotation (5 deg),True,True,311217,0.5937499999976807,,False,49.609375,False,detection,,
+51.953125,AI-Regeneration (real),True,True,311217,0.039062499999847414,,True,47.265625,False,detection,,
+57.8125,Unrelated Image (never registered),True,True,311217,0.15624999999938965,,True,49.609375,False,detection,,
+99.21875,Untouched Signed,,,311356,0.9843749999961549,True,False,100.0,True,robustness,59.17,0.9997
+99.21875,JPEG Q=90,,,311356,0.9843749999961549,True,False,100.0,True,robustness,59.17,0.9997
+98.4375,JPEG Q=75,,,311356,0.9687499999962159,True,False,100.0,True,robustness,59.17,0.9997
+98.4375,JPEG Q=50,,,311356,0.9687499999962159,True,False,100.0,True,robustness,59.17,0.9997
+99.609375,Brightness (+20%),,,311356,0.9921874999961243,True,False,96.09375,False,robustness,59.17,0.9997
+99.21875,Contrast (1.25x),,,311356,0.9843749999961549,True,False,89.0625,False,robustness,59.17,0.9997
+49.609375,True Resize (0.75x),True,True,311356,-0.007812499999969483,,True,92.578125,False,detection,,
+54.296875,True Crop (top 10%),True,True,311356,0.08593749999966431,,True,52.34375,False,detection,,
+79.6875,Rotation (5 deg),True,True,311356,0.5937499999976807,,False,52.34375,False,detection,,
+44.921875,AI-Regeneration (real),True,True,311356,-0.10156249999960328,,True,51.5625,False,detection,,
+50.78125,Unrelated Image (never registered),True,True,311356,0.015624999999938965,,True,52.34375,False,detection,,
+98.4375,Untouched Signed,,,311435,0.9687499999962159,True,False,100.0,True,robustness,59.42,0.9996
+98.4375,JPEG Q=90,,,311435,0.9687499999962159,True,False,100.0,True,robustness,59.42,0.9996
+99.21875,JPEG Q=75,,,311435,0.9843749999961549,True,False,100.0,True,robustness,59.42,0.9996
+99.21875,JPEG Q=50,,,311435,0.9843749999961549,True,False,100.0,True,robustness,59.42,0.9996
+98.828125,Brightness (+20%),,,311435,0.9765624999961854,True,False,95.3125,False,robustness,59.42,0.9996
+98.828125,Contrast (1.25x),,,311435,0.9765624999961854,True,False,91.015625,False,robustness,59.42,0.9996
+49.21875,True Resize (0.75x),True,True,311435,-0.015624999999938965,,True,94.921875,False,detection,,
+47.65625,True Crop (top 10%),True,True,311435,-0.046874999999816896,,True,48.4375,False,detection,,
+73.4375,Rotation (5 deg),True,True,311435,0.46874999999816896,,False,47.265625,False,detection,,
+42.96875,AI-Regeneration (real),True,True,311435,-0.1406249999994507,,True,49.609375,False,detection,,
+51.171875,Unrelated Image (never registered),True,True,311435,0.023437499999908448,,True,48.4375,False,detection,,
+98.828125,Untouched Signed,,,312087,0.9765624999961854,True,False,100.0,True,robustness,59.64,0.9997
+99.21875,JPEG Q=90,,,312087,0.9843749999961549,True,False,100.0,True,robustness,59.64,0.9997
+98.828125,JPEG Q=75,,,312087,0.9765624999961854,True,False,100.0,True,robustness,59.64,0.9997
+99.21875,JPEG Q=50,,,312087,0.9843749999961549,True,False,100.0,True,robustness,59.64,0.9997
+99.609375,Brightness (+20%),,,312087,0.9921874999961243,True,False,96.09375,False,robustness,59.64,0.9997
+99.609375,Contrast (1.25x),,,312087,0.9921874999961243,True,False,92.96875,False,robustness,59.64,0.9997
+48.828125,True Resize (0.75x),True,True,312087,-0.023437499999908448,,True,96.484375,False,detection,,
+42.578125,True Crop (top 10%),True,True,312087,-0.14843749999942019,,True,50.390625,False,detection,,
+97.265625,Rotation (5 deg),True,True,312087,0.9453124999963074,,False,50.78125,False,detection,,
+48.4375,AI-Regeneration (real),True,True,312087,-0.03124999999987793,,True,53.125,False,detection,,
+53.90625,Unrelated Image (never registered),True,True,312087,0.07812499999969483,,True,50.0,False,detection,,
+98.4375,Untouched Signed,,,31263,0.9687499999962159,True,False,100.0,True,robustness,59.26,0.9996
+98.4375,JPEG Q=90,,,31263,0.9687499999962159,True,False,100.0,True,robustness,59.26,0.9996
+99.609375,JPEG Q=75,,,31263,0.9921874999961243,True,False,100.0,True,robustness,59.26,0.9996
+98.4375,JPEG Q=50,,,31263,0.9687499999962159,True,False,99.21875,False,robustness,59.26,0.9996
+99.609375,Brightness (+20%),,,31263,0.9921874999961243,True,False,92.578125,False,robustness,59.26,0.9996
+99.609375,Contrast (1.25x),,,31263,0.9921874999961243,True,False,94.53125,False,robustness,59.26,0.9996
+48.828125,True Resize (0.75x),True,True,31263,-0.023437499999908448,,True,94.140625,False,detection,,
+50.78125,True Crop (top 10%),True,True,31263,0.015624999999938965,,True,46.875,False,detection,,
+98.046875,Rotation (5 deg),True,True,31263,0.9609374999962463,,False,46.875,False,detection,,
+45.703125,AI-Regeneration (real),True,True,31263,-0.08593749999966431,,True,48.828125,False,detection,,
+48.4375,Unrelated Image (never registered),True,True,31263,-0.03124999999987793,,True,49.609375,False,detection,,
+98.4375,Untouched Signed,,,32771,0.9687499999962159,True,False,100.0,True,robustness,58.39,0.9996
+98.828125,JPEG Q=90,,,32771,0.9765624999961854,True,False,100.0,True,robustness,58.39,0.9996
+99.21875,JPEG Q=75,,,32771,0.9843749999961549,True,False,100.0,True,robustness,58.39,0.9996
+98.828125,JPEG Q=50,,,32771,0.9765624999961854,True,False,99.609375,True,robustness,58.39,0.9996
+98.828125,Brightness (+20%),,,32771,0.9765624999961854,True,False,94.921875,False,robustness,58.39,0.9996
+98.828125,Contrast (1.25x),,,32771,0.9765624999961854,True,False,90.234375,False,robustness,58.39,0.9996
+45.3125,True Resize (0.75x),True,True,32771,-0.09374999999963379,,True,92.96875,False,detection,,
+48.828125,True Crop (top 10%),True,True,32771,-0.023437499999908448,,True,45.3125,False,detection,,
+87.5,Rotation (5 deg),True,True,32771,0.7499999999970703,,False,48.046875,False,detection,,
+44.140625,AI-Regeneration (real),True,True,32771,-0.11718749999954224,,True,48.046875,False,detection,,
+50.0,Unrelated Image (never registered),True,True,32771,0.0,,True,45.703125,False,detection,,
+98.4375,Untouched Signed,,,32821,0.9687499999962159,True,False,100.0,True,robustness,58.74,0.9996
+98.4375,JPEG Q=90,,,32821,0.9687499999962159,True,False,100.0,True,robustness,58.74,0.9996
+99.609375,JPEG Q=75,,,32821,0.9921874999961243,True,False,100.0,True,robustness,58.74,0.9996
+98.4375,JPEG Q=50,,,32821,0.9687499999962159,True,False,100.0,True,robustness,58.74,0.9996
+100.0,Brightness (+20%),,,32821,0.9999999999960938,True,False,96.09375,False,robustness,58.74,0.9996
+100.0,Contrast (1.25x),,,32821,0.9999999999960938,True,False,94.53125,False,robustness,58.74,0.9996
+48.046875,True Resize (0.75x),True,True,32821,-0.039062499999847414,,True,95.703125,False,detection,,
+48.046875,True Crop (top 10%),True,True,32821,-0.039062499999847414,,True,52.34375,False,detection,,
+79.296875,Rotation (5 deg),True,True,32821,0.5859374999977112,,False,52.734375,False,detection,,
+45.703125,AI-Regeneration (real),True,True,32821,-0.08593749999966431,,True,51.171875,False,detection,,
+56.640625,Unrelated Image (never registered),True,True,32821,0.13281249999948122,,True,49.21875,False,detection,,
+98.4375,Untouched Signed,,,32835,0.9687499999962159,True,False,100.0,True,robustness,59.05,0.9996
+98.4375,JPEG Q=90,,,32835,0.9687499999962159,True,False,100.0,True,robustness,59.05,0.9996
+98.4375,JPEG Q=75,,,32835,0.9687499999962159,True,False,100.0,True,robustness,59.05,0.9996
+99.21875,JPEG Q=50,,,32835,0.9843749999961549,True,False,100.0,True,robustness,59.05,0.9996
+98.046875,Brightness (+20%),,,32835,0.9609374999962463,True,False,94.53125,False,robustness,59.05,0.9996
+98.4375,Contrast (1.25x),,,32835,0.9687499999962159,True,False,94.140625,False,robustness,59.05,0.9996
+44.53125,True Resize (0.75x),True,True,32835,-0.10937499999957276,,True,97.265625,False,detection,,
+55.078125,True Crop (top 10%),True,True,32835,0.10156249999960328,,True,53.125,False,detection,,
+76.5625,Rotation (5 deg),True,True,32835,0.5312499999979249,,False,50.78125,False,detection,,
+48.828125,AI-Regeneration (real),True,True,32835,-0.023437499999908448,,True,50.78125,False,detection,,
+47.265625,Unrelated Image (never registered),True,True,32835,-0.05468749999978638,,True,50.78125,False,detection,,
+98.4375,Untouched Signed,,,32974,0.9687499999962159,True,False,100.0,True,robustness,51.77,0.9995
+98.4375,JPEG Q=90,,,32974,0.9687499999962159,True,False,100.0,True,robustness,51.77,0.9995
+99.21875,JPEG Q=75,,,32974,0.9843749999961549,True,False,100.0,True,robustness,51.77,0.9995
+98.4375,JPEG Q=50,,,32974,0.9687499999962159,True,False,100.0,True,robustness,51.77,0.9995
+99.21875,Brightness (+20%),,,32974,0.9843749999961549,True,False,95.703125,False,robustness,51.77,0.9995
+99.21875,Contrast (1.25x),,,32974,0.9843749999961549,True,False,92.96875,False,robustness,51.77,0.9995
+49.21875,True Resize (0.75x),True,True,32974,-0.015624999999938965,,True,95.3125,False,detection,,
+45.3125,True Crop (top 10%),True,True,32974,-0.09374999999963379,,True,50.78125,False,detection,,
+89.84375,Rotation (5 deg),True,True,32974,0.7968749999968873,,False,53.125,False,detection,,
+46.484375,AI-Regeneration (real),True,True,32974,-0.07031249999972534,,True,55.859375,False,detection,,
+43.75,Unrelated Image (never registered),True,True,32974,-0.12499999999951172,,True,50.390625,False,detection,,
+98.4375,Untouched Signed,,,33552,0.9687499999962159,True,False,100.0,True,robustness,59.47,0.9996
+98.4375,JPEG Q=90,,,33552,0.9687499999962159,True,False,100.0,True,robustness,59.47,0.9996
+99.21875,JPEG Q=75,,,33552,0.9843749999961549,True,False,100.0,True,robustness,59.47,0.9996
+99.21875,JPEG Q=50,,,33552,0.9843749999961549,True,False,100.0,True,robustness,59.47,0.9996
+100.0,Brightness (+20%),,,33552,0.9999999999960938,True,False,98.828125,False,robustness,59.47,0.9996
+99.21875,Contrast (1.25x),,,33552,0.9843749999961549,True,False,96.875,False,robustness,59.47,0.9996
+49.21875,True Resize (0.75x),True,True,33552,-0.015624999999938965,,True,97.265625,False,detection,,
+55.859375,True Crop (top 10%),True,True,33552,0.11718749999954224,,True,54.296875,False,detection,,
+91.40625,Rotation (5 deg),True,True,33552,0.8281249999967651,,False,52.734375,False,detection,,
+42.578125,AI-Regeneration (real),True,True,33552,-0.14843749999942019,,True,50.390625,False,detection,,
+47.265625,Unrelated Image (never registered),True,True,33552,-0.05468749999978638,,True,56.25,False,detection,,
+98.4375,Untouched Signed,,,3356,0.9687499999962159,True,False,100.0,True,robustness,58.18,0.9995
+98.4375,JPEG Q=90,,,3356,0.9687499999962159,True,False,100.0,True,robustness,58.18,0.9995
+99.21875,JPEG Q=75,,,3356,0.9843749999961549,True,False,100.0,True,robustness,58.18,0.9995
+98.4375,JPEG Q=50,,,3356,0.9687499999962159,True,False,99.609375,True,robustness,58.18,0.9995
+100.0,Brightness (+20%),,,3356,0.9999999999960938,True,False,92.96875,False,robustness,58.18,0.9995
+100.0,Contrast (1.25x),,,3356,0.9999999999960938,True,False,96.09375,False,robustness,58.18,0.9995
+48.4375,True Resize (0.75x),True,True,3356,-0.03124999999987793,,True,96.875,False,detection,,
+60.9375,True Crop (top 10%),True,True,3356,0.21874999999914552,,True,48.046875,False,detection,,
+78.515625,Rotation (5 deg),True,True,3356,0.5703124999977722,,False,48.828125,False,detection,,
+41.796875,AI-Regeneration (real),True,True,3356,-0.16406249999935915,,True,45.703125,False,detection,,
+42.96875,Unrelated Image (never registered),True,True,3356,-0.1406249999994507,,True,42.1875,False,detection,,

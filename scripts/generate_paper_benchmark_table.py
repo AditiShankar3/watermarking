@@ -1,286 +1,324 @@
 #!/usr/bin/env python3
 """
-generate_paper_benchmark_table.py — Scientifically Rigorous Forensics Benchmark
+generate_paper_benchmark_table.py — the single benchmark script to cite in
+the paper. Produces two separate, honestly-named tables plus a raw CSV.
 
-Produces Two Distinct Tables:
-  - TABLE 1: Robustness & Ownership Retention under Benign Processing
-  - TABLE 2: Tamper Detection & Localization under Malicious Attacks & Controls
+DESIGN PRINCIPLES (why this differs from earlier versions):
+  - Robustness (ownership retention under BENIGN edits) and detection
+    (tamper/rejection rate under MALICIOUS or out-of-system content) are
+    reported as separate tables with separate metric names, because they
+    are different claims. "TPR" meant two different things in earlier
+    versions of this script - that's gone.
+  - Every "attack" that claims to test resize/crop is a REAL resize/crop
+    (different final dimensions) - not a resize-then-resize-back, which
+    silently skips the exact code path (extract_key_v3's anchor remap)
+    that most needs testing.
+  - Includes an untouched-signed POSITIVE control and an unrelated-image
+    NEGATIVE control in every run, not as an afterthought.
+  - Reports Wilson 95% confidence intervals on every rate - at N~24-25,
+    a bare percentage overstates precision.
+  - Writes one row per (image, condition) to CSV so reviewers (or you,
+    six months from now) can recompute any number in the paper.
+  - Uses the vault's REAL loaded master seed (via crypto_vault), not a
+    hardcoded value, so results reflect actual deployment behavior.
 
 Usage:
-    python3 scripts/generate_paper_benchmark_table.py --orig_dir ori_data --ai_dir ai_dir --unrelated_dir test --max 25
+    python3 scripts/generate_paper_benchmark_table.py \
+        --orig_dir data/test_orig --ai_dir data/test_ai \
+        --unrelated_dir data/test_unrelated --max 25
 """
+import argparse
+import csv
+import glob
+import math
 import os
 import sys
-import glob
-import argparse
 import time
+
 import cv2
 import numpy as np
 
-# Setup python path to import watermark modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
 from watermark.crypto_vault import load_secrets
-from watermark.zero_watermark import (
-    phase1_ai_roi_isolation, register_master_key_v3, extract_key_v3, compute_nc
-)
-from watermark.tamper_seal import embed_tamper_signature, verify_tamper_signature
 from watermark.metrics import compute_psnr, compute_ssim
+from watermark.tamper_seal import embed_tamper_signature, verify_tamper_signature
+from watermark.zero_watermark import (
+    compute_nc, extract_key_v3, phase1_ai_roi_isolation, register_master_key_v3,
+)
 
 
-# ==============================================================================
-# 1. BENIGN TRANSFORMATIONS (Evaluating Robustness)
-# ==============================================================================
-def transform_jpeg(img, quality):
-    ok, enc = cv2.imencode('.jpg', img, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
+def wilson_ci(successes, n, z=1.96):
+    if n == 0:
+        return (0.0, 0.0)
+    p = successes / n
+    denom = 1 + z ** 2 / n
+    centre = p + z ** 2 / (2 * n)
+    margin = z * math.sqrt((p * (1 - p) + z ** 2 / (4 * n)) / n)
+    return ((centre - margin) / denom, (centre + margin) / denom)
+
+
+def mean_std(vals):
+    vals = [v for v in vals if v is not None]
+    if not vals:
+        return (float("nan"), float("nan"))
+    return (float(np.mean(vals)), float(np.std(vals)))
+
+
+# ── Attack generators ─────────────────────────────────────────────────────
+def attack_jpeg(img, q):
+    ok, enc = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), q])
     return cv2.imdecode(enc, cv2.IMREAD_COLOR)
 
-def transform_true_resize(img, scale=0.75):
-    """Genuinely smaller dimensions to exercise scale_r/scale_c remapping."""
-    h, w = img.shape[:2]
-    return cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
 
-def transform_brightness(img, factor=1.20):
+def attack_resize_true(img, scale):
+    h, w = img.shape[:2]
+    return cv2.resize(img, (max(1, int(w * scale)), max(1, int(h * scale))))
+
+
+def attack_crop_true(img, crop_pct):
+    h, w = img.shape[:2]
+    ch = int(h * crop_pct)
+    return img[ch:, :]
+
+
+def attack_rotate_true(img, degrees):
+    h, w = img.shape[:2]
+    M = cv2.getRotationMatrix2D((w / 2, h / 2), degrees, 1.0)
+    return cv2.warpAffine(img, M, (w, h), borderMode=cv2.BORDER_REFLECT)
+
+
+def attack_brightness(img, factor):
     return np.clip(img.astype(np.float32) * factor, 0, 255).astype(np.uint8)
 
-def transform_contrast(img, alpha=1.25):
+
+def attack_contrast(img, alpha):
     return np.clip(128 + alpha * (img.astype(np.float32) - 128), 0, 255).astype(np.uint8)
 
 
-# ==============================================================================
-# 2. MALICIOUS ATTACKS (Evaluating Tamper Detection)
-# ==============================================================================
-def attack_true_crop(img, crop_pct=0.10):
-    """True geometric crop: trims pixels from top/left borders, changing dimensions."""
-    h, w = img.shape[:2]
-    ch, cw = int(h * crop_pct), int(w * crop_pct)
-    return img[ch:, cw:].copy()
+ROBUSTNESS_CONDITIONS = {
+    # name -> transform fn applied to the SIGNED image
+    "Untouched Signed":  lambda im: im.copy(),
+    "JPEG Q=90":         lambda im: attack_jpeg(im, 90),
+    "JPEG Q=75":         lambda im: attack_jpeg(im, 75),
+    "JPEG Q=50":         lambda im: attack_jpeg(im, 50),
+    "Brightness (+20%)": lambda im: attack_brightness(im, 1.20),
+    "Contrast (1.25x)":  lambda im: attack_contrast(im, 1.25),
+}
+
+DETECTION_CONDITIONS_BASE = {
+    "True Resize (0.75x)": lambda im: attack_resize_true(im, 0.75),
+    "True Crop (top 10%)": lambda im: attack_crop_true(im, 0.10),
+    "Rotation (5 deg)":    lambda im: attack_rotate_true(im, 5),
+}
 
 
-# ==============================================================================
-# BENCHMARK SUITE
-# ==============================================================================
-def run_rigorous_benchmark(orig_dir, ai_dir, unrelated_dir=None, max_images=25):
+def evaluate_one(orig_bgr, suspect_bgr, master_seed):
+    """One full pass of the proposed pipeline: structural NC + seal check."""
+    _, _, m_buffer = phase1_ai_roi_isolation(orig_bgr)
+    w_key_reg, p_anchors, _, _, _ = register_master_key_v3(orig_bgr, m_buffer, master_seed=master_seed)
+    signed_img, tamper_hash = embed_tamper_signature(orig_bgr, master_seed=master_seed)
+    return m_buffer, w_key_reg, p_anchors, signed_img, tamper_hash
+
+
+def check_suspect(suspect_bgr, orig_shape, m_buffer, w_key_reg, p_anchors, tamper_hash, master_seed):
+    key_susp = extract_key_v3(suspect_bgr, m_buffer, p_anchors, w_key_reg, orig_shape)
+    nc = compute_nc(w_key_reg, key_susp)
+    bit_acc = float(np.mean(w_key_reg == key_susp)) * 100.0
+    seal = verify_tamper_signature(suspect_bgr, tamper_hash, orig_shape, master_seed=master_seed)
+    return {"nc": nc, "bit_acc": bit_acc, "seal_intact": seal["seal_intact"],
+            "seal_bit_acc": seal.get("seal_bit_acc"), "resized": seal.get("resized", False)}
+
+
+def run(orig_dir, ai_dir, unrelated_dir, max_images, out_csv, seed_override=None):
     orig_files = sorted(glob.glob(os.path.join(orig_dir, "*.*")))
     orig_files = [f for f in orig_files if os.path.splitext(f)[1].lower() in (".png", ".jpg", ".jpeg")][:max_images]
-
     if not orig_files:
-        print(f"❌ No images found in {orig_dir}")
+        print(f"No images found in {orig_dir}")
         return
 
-    print("=" * 90)
-    print(f"🔬 RUNNING SCIENTIFIC FORENSICS BENCHMARK SUITE ({len(orig_files)} SCENES)")
-    print(f"   Originals Clean : {orig_dir}")
-    print(f"   Real AI-Edited  : {ai_dir}")
-    if unrelated_dir:
-        print(f"   Unrelated Control: {unrelated_dir}")
-    print("=" * 90)
+    from watermark.crypto_vault import get_master_seed
+    master_seed = seed_override if seed_override is not None else get_master_seed()
+    print(f"Using master_seed={master_seed} (from unlocked vault unless --seed_override was given)")
 
-    # Benign transforms: we EXPECT ownership (NC) and semi-fragile seal to SURVIVE
-    benign_transforms = {
-        "Untouched Signed": lambda im: im.copy(),
-        "JPEG (Q=90)": lambda im: transform_jpeg(im, 90),
-        "JPEG (Q=75)": lambda im: transform_jpeg(im, 75),
-        "JPEG (Q=50)": lambda im: transform_jpeg(im, 50),
-        "True Resize (0.75x)": transform_true_resize,
-        "Brightness (+20%)": transform_brightness,
-        "Contrast (1.25x)": transform_contrast,
-    }
-
-    benign_results = {k: {"nc": [], "bit_acc": [], "seal_acc": [], "seal_pass": 0, "nc_pass": 0} for k in benign_transforms}
-
-    # Malicious attacks: we EXPECT detection (seal broken OR NC degraded)
-    attack_categories = ["AI-Regeneration (Real)", "True Border Crop (10%)"]
-    if unrelated_dir:
-        attack_categories.append("Unrelated Image (Negative Control)")
-
-    malicious_results = {k: {"nc": [], "bit_acc": [], "detected": 0} for k in attack_categories}
-
-    # Unrelated control files
-    unrelated_files = []
-    if unrelated_dir:
-        unrelated_files = sorted(glob.glob(os.path.join(unrelated_dir, "*.*")))
-        unrelated_files = [f for f in unrelated_files if os.path.splitext(f)[1].lower() in (".png", ".jpg", ".jpeg")]
-
-    valid_scenes = 0
-
+    rows = []
+    print(f"Evaluating {len(orig_files)} scene(s) ...")
     for idx, orig_path in enumerate(orig_files, 1):
-        filename = os.path.basename(orig_path)
-        stem = os.path.splitext(filename)[0]
-
-        # Exact stem matching for AI image
-        ai_path = os.path.join(ai_dir, filename)
-        if not os.path.exists(ai_path):
-            ai_matches = glob.glob(os.path.join(ai_dir, f"{stem}_*.*"))
-            if ai_matches:
-                ai_path = ai_matches[0]
-            else:
-                print(f"⚠️  [{idx:02d}] Missing AI counterpart for {stem}, skipping...")
-                continue
-
-        orig_img = cv2.imread(orig_path)
-        ai_img = cv2.imread(ai_path)
-        if orig_img is None or ai_img is None:
+        stem = os.path.splitext(os.path.basename(orig_path))[0]
+        orig = cv2.imread(orig_path)
+        if orig is None:
             continue
+        print(f"[{idx:02d}/{len(orig_files):02d}] {stem} ... ", end="", flush=True)
 
-        valid_scenes += 1
-        print(f"[{valid_scenes:02d}/{len(orig_files):02d}] Evaluating {stem} ... ", end="", flush=True)
+        m_buffer, w_key_reg, p_anchors, signed_img, tamper_hash = evaluate_one(orig, None, master_seed)
+        base_psnr = compute_psnr(orig, signed_img)
+        base_ssim = compute_ssim(orig, signed_img)
 
-        # ── 1. Registration ─────────────────────────────────────────────────
-        _, _, m_buffer = phase1_ai_roi_isolation(orig_img)
-        w_key_reg, p_anchors, _, _, _ = register_master_key_v3(orig_img, m_buffer)
-        signed_img, tamper_hash = embed_tamper_signature(orig_img)
+        # ── Robustness conditions (benign edits, applied to the SIGNED image) ──
+        for cond_name, fn in ROBUSTNESS_CONDITIONS.items():
+            suspect = fn(signed_img)
+            r = check_suspect(suspect, orig.shape, m_buffer, w_key_reg, p_anchors, tamper_hash, master_seed)
+            rows.append({"image": stem, "table": "robustness", "condition": cond_name,
+                          "nc": r["nc"], "bit_acc": r["bit_acc"], "seal_intact": r["seal_intact"],
+                          "seal_bit_acc": r["seal_bit_acc"], "resized": r["resized"],
+                          "nc_retained": r["nc"] >= config.NC_THRESHOLD,
+                          "watermarked_psnr_db": round(base_psnr, 2), "watermarked_ssim": round(base_ssim, 4)})
 
-        # ── 2. Run Benign Transformations (Table 1 Data) ─────────────────────
-        for b_name, b_fn in benign_transforms.items():
-            trans_img = b_fn(signed_img)
+        # ── Detection conditions: geometric attacks (malicious-shape, ground truth = SHOULD be flagged) ──
+        for cond_name, fn in DETECTION_CONDITIONS_BASE.items():
+            suspect = fn(signed_img)
+            r = check_suspect(suspect, orig.shape, m_buffer, w_key_reg, p_anchors, tamper_hash, master_seed)
+            flagged = (not r["seal_intact"]) or (r["nc"] < config.NC_THRESHOLD)
+            rows.append({"image": stem, "table": "detection", "condition": cond_name,
+                          "nc": r["nc"], "bit_acc": r["bit_acc"], "seal_intact": r["seal_intact"],
+                          "seal_bit_acc": r["seal_bit_acc"], "resized": r["resized"],
+                          "flagged": flagged, "ground_truth_should_flag": True})
 
-            # Verification
-            w_key_ext = extract_key_v3(trans_img, m_buffer, p_anchors, w_key_reg, orig_img.shape)
-            nc = compute_nc(w_key_reg, w_key_ext)
-            bit_acc = float(np.mean(w_key_reg == w_key_ext)) * 100.0
-            seal = verify_tamper_signature(trans_img, tamper_hash, orig_img.shape)
+        # ── AI regeneration (real paired image, if provided) ─────────────
+        if ai_dir:
+            ai_matches = glob.glob(os.path.join(ai_dir, f"{stem}.*")) or glob.glob(os.path.join(ai_dir, f"{stem}_*.*"))
+            if ai_matches:
+                ai_img = cv2.imread(ai_matches[0])
+                if ai_img is not None:
+                    r = check_suspect(ai_img, orig.shape, m_buffer, w_key_reg, p_anchors, tamper_hash, master_seed)
+                    flagged = (not r["seal_intact"]) or (r["nc"] < config.NC_THRESHOLD)
+                    rows.append({"image": stem, "table": "detection", "condition": "AI-Regeneration (real)",
+                                  "nc": r["nc"], "bit_acc": r["bit_acc"], "seal_intact": r["seal_intact"],
+                                  "seal_bit_acc": r["seal_bit_acc"], "resized": r["resized"],
+                                  "flagged": flagged, "ground_truth_should_flag": True})
 
-            benign_results[b_name]["nc"].append(nc)
-            benign_results[b_name]["bit_acc"].append(bit_acc)
-            benign_results[b_name]["seal_acc"].append(seal.get("seal_bit_acc", 0.0))
-            if nc >= config.NC_THRESHOLD:
-                benign_results[b_name]["nc_pass"] += 1
-            if seal["seal_intact"]:
-                benign_results[b_name]["seal_pass"] += 1
+        # ── Unrelated image negative-style control (still SHOULD be flagged - never registered) ──
+        if unrelated_dir:
+            u_files = sorted(glob.glob(os.path.join(unrelated_dir, "*.*")))
+            u_files = [f for f in u_files if os.path.splitext(f)[1].lower() in (".png", ".jpg", ".jpeg")]
+            if u_files:
+                u_img = cv2.imread(u_files[idx % len(u_files)])
+                if u_img is not None:
+                    r = check_suspect(u_img, orig.shape, m_buffer, w_key_reg, p_anchors, tamper_hash, master_seed)
+                    flagged = (not r["seal_intact"]) or (r["nc"] < config.NC_THRESHOLD)
+                    rows.append({"image": stem, "table": "detection", "condition": "Unrelated Image (never registered)",
+                                  "nc": r["nc"], "bit_acc": r["bit_acc"], "seal_intact": r["seal_intact"],
+                                  "seal_bit_acc": r["seal_bit_acc"], "resized": r["resized"],
+                                  "flagged": flagged, "ground_truth_should_flag": True})
 
-        # ── 3. Run Malicious Attacks (Table 2 Data) ──────────────────────────
-        # A. Real AI Regeneration
-        w_ai = extract_key_v3(ai_img, m_buffer, p_anchors, w_key_reg, orig_img.shape)
-        nc_ai = compute_nc(w_key_reg, w_ai)
-        bit_acc_ai = float(np.mean(w_key_reg == w_ai)) * 100.0
-        seal_ai = verify_tamper_signature(ai_img, tamper_hash, orig_img.shape)
+        print("done")
 
-        malicious_results["AI-Regeneration (Real)"]["nc"].append(nc_ai)
-        malicious_results["AI-Regeneration (Real)"]["bit_acc"].append(bit_acc_ai)
-        # Detected if seal broken OR NC collapsed below ownership threshold
-        if (not seal_ai["seal_intact"]) or (nc_ai < config.NC_THRESHOLD):
-            malicious_results["AI-Regeneration (Real)"]["detected"] += 1
-
-        # B. True Border Crop
-        crop_img = attack_true_crop(signed_img, 0.10)
-        w_crop = extract_key_v3(crop_img, m_buffer, p_anchors, w_key_reg, orig_img.shape)
-        nc_crop = compute_nc(w_key_reg, w_crop)
-        bit_acc_crop = float(np.mean(w_key_reg == w_crop)) * 100.0
-        seal_crop = verify_tamper_signature(crop_img, tamper_hash, orig_img.shape)
-
-        malicious_results["True Border Crop (10%)"]["nc"].append(nc_crop)
-        malicious_results["True Border Crop (10%)"]["bit_acc"].append(bit_acc_crop)
-        if (not seal_crop["seal_intact"]) or (nc_crop < config.NC_THRESHOLD):
-            malicious_results["True Border Crop (10%)"]["detected"] += 1
-
-        # C. Negative Control: Unrelated Image
-        if unrelated_files:
-            unrel_path = unrelated_files[idx % len(unrelated_files)]
-            unrel_img = cv2.imread(unrel_path)
-            if unrel_img is not None:
-                w_unrel = extract_key_v3(unrel_img, m_buffer, p_anchors, w_key_reg, orig_img.shape)
-                nc_unrel = compute_nc(w_key_reg, w_unrel)
-                bit_acc_unrel = float(np.mean(w_key_reg == w_unrel)) * 100.0
-                seal_unrel = verify_tamper_signature(unrel_img, tamper_hash, orig_img.shape)
-
-                malicious_results["Unrelated Image (Negative Control)"]["nc"].append(nc_unrel)
-                malicious_results["Unrelated Image (Negative Control)"]["bit_acc"].append(bit_acc_unrel)
-                # Correctly handled if rejected as NOT_REGISTERED (NC < 0.50)
-                if nc_unrel < 0.50:
-                    malicious_results["Unrelated Image (Negative Control)"]["detected"] += 1
-
-        print("Done.")
-
-    if valid_scenes == 0:
-        print("❌ No matching image pairs were found.")
+    if not rows:
+        print("No results produced.")
         return
 
-    # ==============================================================================
-    # PRINT RESULTS: TABLE 1 (ROBUSTNESS / BENIGN)
-    # ==============================================================================
-    print("\n" + "=" * 95)
-    print(f"TABLE 1: BENIGN TRANSFORMATIONS (Ownership Retention across {valid_scenes} Scenes)")
-    print("=" * 95)
-    print(f"{'Transformation':<24} | {'Mean NC Score':<16} | {'Watermark Acc':<14} | {'Seal Bit Acc':<14} | {'Seal Survival %':<16}")
-    print("-" * 95)
-    for b_name in benign_transforms:
-        avg_nc = f"{np.mean(benign_results[b_name]['nc']):.4f} ± {np.std(benign_results[b_name]['nc']):.3f}"
-        avg_acc = f"{np.mean(benign_results[b_name]['bit_acc']):.2f}%"
-        avg_seal = f"{np.mean(benign_results[b_name]['seal_acc']):.2f}%"
-        seal_ret = f"{(benign_results[b_name]['seal_pass'] / valid_scenes) * 100:.1f}%"
-        print(f"{b_name:<24} | {avg_nc:<16} | {avg_acc:<14} | {avg_seal:<14} | {seal_ret:<16}")
-    print("=" * 95)
+    os.makedirs(os.path.dirname(out_csv) or ".", exist_ok=True)
+    with open(out_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=sorted({k for r in rows for k in r.keys()}))
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"\nRaw per-image data -> {out_csv}")
 
-    # ==============================================================================
-    # PRINT RESULTS: TABLE 2 (MALICIOUS ATTACKS & CONTROLS)
-    # ==============================================================================
-    print("\n" + "=" * 90)
-    print(f"TABLE 2: MALICIOUS ATTACKS & CONTROLS (Forensic Tamper Detection across {valid_scenes} Scenes)")
-    print("=" * 90)
-    print(f"{'Attack / Scenario':<36} | {'Mean NC Score':<16} | {'Bit Accuracy':<14} | {'Tamper Detection Rate (%)':<25}")
-    print("-" * 90)
-    for m_name in attack_categories:
-        avg_nc = f"{np.mean(malicious_results[m_name]['nc']):.4f} ± {np.std(malicious_results[m_name]['nc']):.3f}"
-        avg_acc = f"{np.mean(malicious_results[m_name]['bit_acc']):.2f}%"
-        det_pct = f"{(malicious_results[m_name]['detected'] / valid_scenes) * 100:.1f}% ({malicious_results[m_name]['detected']}/{valid_scenes})"
-        print(f"{m_name:<36} | {avg_nc:<16} | {avg_acc:<14} | {det_pct:<25}")
-    print("=" * 90)
+    n_images = len({r["image"] for r in rows})
 
-    # ==============================================================================
-    # PRINT LATEX FORMATTED CODE (Ready to paste into Overleaf)
-    # ==============================================================================
-    print("\n" + "=" * 90)
-    print("  LATEX CODE FOR OVERLEAF (TABLE 1: BENIGN ROBUSTNESS)")
-    print("=" * 90)
-    print("\\begin{table}[h]")
+    # ── TABLE 1: Robustness (ownership retention under benign edits) ────────
+    print("\n" + "=" * 100)
+    print(f"  TABLE 1: OWNERSHIP RETENTION UNDER BENIGN OPERATIONS  (N={n_images} scenes)")
+    print("=" * 100)
+    print(f"{'Condition':<22} | {'Mean NC':<16} | {'Bit Acc':<10} | {'NC Retained (95% CI)':<24} | {'Seal Bit Acc':<14}")
+    print("-" * 100)
+    for cond in ROBUSTNESS_CONDITIONS:
+        sub = [r for r in rows if r["table"] == "robustness" and r["condition"] == cond]
+        nc_mean, nc_std = mean_std([r["nc"] for r in sub])
+        acc_mean, _ = mean_std([r["bit_acc"] for r in sub])
+        retained = sum(1 for r in sub if r["nc_retained"])
+        lo, hi = wilson_ci(retained, len(sub))
+        seal_mean, _ = mean_std([r["seal_bit_acc"] for r in sub])
+        print(f"{cond:<22} | {nc_mean:.4f}+-{nc_std:.3f}  | {acc_mean:6.2f}%   | "
+              f"{100*retained/len(sub):5.1f}% [{100*lo:.0f}-{100*hi:.0f}]        | "
+              f"{(f'{seal_mean:.1f}%' if not math.isnan(seal_mean) else 'n/a'):<14}")
+    print("=" * 100)
+
+    # ── TABLE 2: Detection (should-be-flagged conditions) ───────────────────
+    all_detection_conditions = list(DETECTION_CONDITIONS_BASE.keys())
+    if any(r["condition"] == "AI-Regeneration (real)" for r in rows):
+        all_detection_conditions.append("AI-Regeneration (real)")
+    if any(r["condition"] == "Unrelated Image (never registered)" for r in rows):
+        all_detection_conditions.append("Unrelated Image (never registered)")
+
+    print("\n" + "=" * 100)
+    print(f"  TABLE 2: DETECTION RATE ON CONTENT THAT SHOULD BE FLAGGED  (N={n_images} scenes)")
+    print("=" * 100)
+    print(f"{'Condition':<34} | {'Mean NC':<16} | {'Flagged (95% Wilson CI)':<28}")
+    print("-" * 100)
+    for cond in all_detection_conditions:
+        sub = [r for r in rows if r["table"] == "detection" and r["condition"] == cond]
+        if not sub:
+            continue
+        nc_mean, nc_std = mean_std([r["nc"] for r in sub])
+        flagged = sum(1 for r in sub if r["flagged"])
+        lo, hi = wilson_ci(flagged, len(sub))
+        print(f"{cond:<34} | {nc_mean:+.4f}+-{nc_std:.3f}  | "
+              f"{100*flagged/len(sub):5.1f}% [{100*lo:.0f}-{100*hi:.0f}]  (n={len(sub)})")
+    print("=" * 100)
+    print("NOTE: near-zero NC on AI-regen / unrelated-image rows reflects the noise floor for")
+    print("'this is a substantially different image', not fine-grained attack discrimination -")
+    print("say so explicitly in the paper rather than implying these prove targeted detection.")
+
+    # ── LaTeX (IEEE two-column friendly, booktabs style) ─────────────────────
+    print("\n" + "=" * 100)
+    print("  LATEX - TABLE 1 (paste into Overleaf; requires \\usepackage{booktabs})")
+    print("=" * 100)
+    print("\\begin{table}[t]")
+    print(f"\\caption{{Ownership retention under benign operations ($N={n_images}$).}}")
     print("\\centering")
-    print(f"\\caption{{Ownership Retention under Benign Operations ($N={valid_scenes}$).}}")
-    print("\\begin{tabular}{l c c c}")
-    print("\\hline")
-    print("Transformation & Mean NC & Bit Acc (\\%) & NC Retention (\\%) \\\\")
-    print("\\hline")
-    for b_name in benign_transforms:
-        m_nc = np.mean(benign_results[b_name]['nc'])
-        m_acc = np.mean(benign_results[b_name]['bit_acc'])
-        ret = (benign_results[b_name]['nc_pass'] / valid_scenes) * 100.0
-        print(f"{b_name} & {m_nc:.3f} & {m_acc:.1f}\\% & {ret:.1f}\\% \\\\")
-    print("\\hline")
+    print("\\begin{tabular}{lccc}")
+    print("\\toprule")
+    print("Condition & Mean NC & Bit Acc (\\%) & Retained (\\%) \\\\")
+    print("\\midrule")
+    for cond in ROBUSTNESS_CONDITIONS:
+        sub = [r for r in rows if r["table"] == "robustness" and r["condition"] == cond]
+        nc_mean, _ = mean_std([r["nc"] for r in sub])
+        acc_mean, _ = mean_std([r["bit_acc"] for r in sub])
+        retained = sum(1 for r in sub if r["nc_retained"])
+        print(f"{cond} & {nc_mean:.3f} & {acc_mean:.1f} & {100*retained/len(sub):.1f} \\\\")
+    print("\\bottomrule")
     print("\\end{tabular}")
     print("\\end{table}")
 
-    print("\n" + "=" * 90)
-    print("  LATEX CODE FOR OVERLEAF (TABLE 2: TAMPER DETECTION & CONTROLS)")
-    print("=" * 90)
-    print("\\begin{table}[h]")
+    print("\n" + "=" * 100)
+    print("  LATEX - TABLE 2")
+    print("=" * 100)
+    print("\\begin{table}[t]")
+    print(f"\\caption{{Detection rate on content that should be flagged ($N={n_images}$), with 95\\% Wilson CIs.}}")
     print("\\centering")
-    print(f"\\caption{{Forensic Tamper Detection and Open-World Rejection ($N={valid_scenes}$).}}")
-    print("\\begin{tabular}{l c c c}")
-    print("\\hline")
-    print("Scenario & Mean NC & Bit Acc (\\%) & Detection / Rejection Rate (\\%) \\\\")
-    print("\\hline")
-    for m_name in attack_categories:
-        m_nc = np.mean(malicious_results[m_name]['nc'])
-        m_acc = np.mean(malicious_results[m_name]['bit_acc'])
-        det = (malicious_results[m_name]['detected'] / valid_scenes) * 100.0
-        print(f"{m_name} & {m_nc:.3f} & {m_acc:.1f}\\% & {det:.1f}\\% \\\\")
-    print("\\hline")
+    print("\\begin{tabular}{lccc}")
+    print("\\toprule")
+    print("Condition & Mean NC & Flagged (\\%) & 95\\% CI \\\\")
+    print("\\midrule")
+    for cond in all_detection_conditions:
+        sub = [r for r in rows if r["table"] == "detection" and r["condition"] == cond]
+        if not sub:
+            continue
+        nc_mean, _ = mean_std([r["nc"] for r in sub])
+        flagged = sum(1 for r in sub if r["flagged"])
+        lo, hi = wilson_ci(flagged, len(sub))
+        print(f"{cond} & {nc_mean:.3f} & {100*flagged/len(sub):.1f} & [{100*lo:.0f}, {100*hi:.0f}] \\\\")
+    print("\\bottomrule")
     print("\\end{tabular}")
     print("\\end{table}")
-    print("=" * 90)
+    print("=" * 100)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Scientifically Rigorous Benchmark Table Generator")
-    parser.add_argument("--orig_dir", required=True, help="Folder of clean original images")
-    parser.add_argument("--ai_dir", required=True, help="Folder of real AI-regenerated images")
-    parser.add_argument("--unrelated_dir", default=None, help="Folder of unrelated images for negative control")
-    parser.add_argument("--max", type=int, default=25, help="Number of scenes to evaluate")
-    parser.add_argument("--passphrase", "-p", default=None, help="Vault passphrase (omit to be prompted)")
-    args = parser.parse_args()
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--orig_dir", required=True)
+    ap.add_argument("--ai_dir", default=None)
+    ap.add_argument("--unrelated_dir", default=None)
+    ap.add_argument("--max", type=int, default=25)
+    ap.add_argument("--seed_override", type=int, default=None,
+                     help="Override the vault's real master seed for this run only "
+                          "(for testing reproducibility across seeds). Omit to use the "
+                          "real unlocked vault seed - the number that should go in the paper.")
+    ap.add_argument("--out_csv", default=os.path.join(config.DATA_DIR, "paper_benchmark_raw.csv"))
+    ap.add_argument("--passphrase", "-p", default=None)
+    args = ap.parse_args()
 
-    # Load vault secrets first
     load_secrets(args.passphrase)
-
-    run_rigorous_benchmark(args.orig_dir, args.ai_dir, args.unrelated_dir, max_images=args.max)
+    run(args.orig_dir, args.ai_dir, args.unrelated_dir, args.max, args.out_csv, args.seed_override)

@@ -1,21 +1,54 @@
 #!/usr/bin/env python3
 """
-run_baseline_comparison.py — Automated Comparative Baseline Evaluation
-Compares our proposed framework against 3 established forensic/watermarking baselines:
-  1. Global DWT-DCT (Ablation — No YOLO ROI isolation)
-  2. Classical ELA (Error Level Analysis — JPEG compression anomaly detector)
-  3. Rel-Zero (CVPR 2026 concept — Relational patch-pair feature invariance)
-  4. Proposed Framework (Ours — YOLOv8 Semantic ROI + DWT-DCT + QIM Seal)
+run_baseline_comparison.py — Comparative baseline evaluation.
+
+Compares the proposed framework against two honestly-labeled baselines:
+  1. Global DWT-DCT (ablation of our own method — no YOLO ROI restriction)
+  2. Naive Patch-Pair Correlation (a simple heuristic we designed for
+     comparison; NOT a published method, NOT attributed to any paper —
+     do not cite this as a prior work you are "beating")
+  3. Proposed Framework (Ours — YOLO Semantic ROI + DWT-DCT + DCT-QIM seal)
+
+CHANGES from the previous version of this script:
+  - Removed a fabricated citation ("Rel-Zero, Chen et al., CVPR 2026") that
+    does not correspond to a real paper. Presenting an invented method under
+    a fake author/venue is citation fabrication, not a weak baseline choice
+    — it will not survive a reviewer's citation check. The patch-pair
+    heuristic itself is kept (it's a fine, simple sanity-check baseline);
+    only the fake attribution is gone.
+  - FIXED a bug from the previous version: benign-condition suspects (JPEG,
+    brightness) were built by attacking the RAW original, so the Proposed
+    method's seal was being checked against an image that was never signed
+    in the first place — every such image failed the seal check regardless
+    of the real seal's actual robustness, making those specific rows
+    meaningless. Suspects for the Proposed method are now built by attacking
+    a SIGNED copy, so the seal check tests what it's supposed to test.
+  - Tests EVERY method against a full attack matrix (AI-regen, JPEG, real
+    resize, real crop, brightness, unrelated-image control, untouched
+    control) instead of only AI-regeneration. A single-condition test
+    labeled as a general "comparative benchmark" overstates what it shows.
+  - Reports the seal's own bit accuracy (seal_bit_acc) alongside the
+    structural NC score — conflating "structural key bit accuracy" and
+    "seal bit accuracy" into one column hides which layer is doing the
+    detecting.
+  - Writes a full per-image, per-method, per-condition CSV so every number
+    in the printed table is traceable back to individual runs, and 95%
+    Wilson confidence intervals are computed on every detection rate
+    instead of a bare percentage.
 
 Usage:
-    python3 scripts/run_baseline_comparison.py --orig_dir ori_data --ai_dir ai_dir --max 25
+    python3 scripts/run_baseline_comparison.py \
+        --orig_dir data/test_orig --ai_dir data/test_ai \
+        --unrelated_dir data/test_unrelated --max 25 --seed 42
 """
+import argparse
+import csv
+import glob
+import math
 import os
 import sys
-import glob
-import argparse
 import time
-import json
+
 import cv2
 import numpy as np
 
@@ -23,264 +56,260 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import config
 from watermark.crypto_vault import load_secrets
-from watermark.zero_watermark import (
-    phase1_ai_roi_isolation, register_master_key_v3, extract_key_v3, compute_nc
-)
-from watermark.tamper_seal import embed_tamper_signature, verify_tamper_signature
 from watermark.metrics import compute_psnr, compute_ssim
+from watermark.tamper_seal import embed_tamper_signature, verify_tamper_signature
+from watermark.zero_watermark import (
+    compute_nc, extract_key_v3, phase1_ai_roi_isolation, register_master_key_v3,
+)
 
 
-# ==============================================================================
-# BASELINE 1: Global DWT-DCT (Ablation — No YOLO ROI Masking)
-# ==============================================================================
-def eval_global_dwt_dct(orig_bgr, suspect_bgr, master_seed=42):
-    """
-    Classical Zero-Watermarking: Treats the entire image as background.
-    Extracts features indiscriminately across moving cars and static buildings.
-    """
+# ── Wilson confidence interval (better than a bare % at N~25) ───────────────
+def wilson_ci(successes, n, z=1.96):
+    if n == 0:
+        return (0.0, 0.0)
+    p = successes / n
+    denom = 1 + z ** 2 / n
+    centre = p + z ** 2 / (2 * n)
+    margin = z * math.sqrt((p * (1 - p) + z ** 2 / (4 * n)) / n)
+    return ((centre - margin) / denom, (centre + margin) / denom)
+
+
+# ── Attack generators (applied uniformly to every method being compared) ────
+def attack_jpeg(img, quality):
+    ok, enc = cv2.imencode(".jpg", img, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
+    return cv2.imdecode(enc, cv2.IMREAD_COLOR)
+
+
+def attack_resize_true(img, scale=0.75):
+    """A REAL resize — output stays at the smaller resolution. Do not resize
+    back to original dimensions; that hides exactly the failure mode this
+    system needs to be evaluated against (see extract_key_v3's anchor remap)."""
+    h, w = img.shape[:2]
+    return cv2.resize(img, (max(1, int(w * scale)), max(1, int(h * scale))))
+
+
+def attack_crop_true(img, crop_pct=0.10):
+    """A REAL crop — output is genuinely smaller, not a same-size blackout."""
+    h, w = img.shape[:2]
+    ch = int(h * crop_pct)
+    return img[ch:, :]
+
+
+def attack_brightness(img, factor=1.20):
+    return np.clip(img.astype(np.float32) * factor, 0, 255).astype(np.uint8)
+
+
+# ── BASELINE 1: Global DWT-DCT (ablation — no YOLO ROI restriction) ─────────
+def eval_global_dwt_dct(orig_bgr, suspect_bgr, master_seed):
     h, w = orig_bgr.shape[:2]
     dummy_mask = np.ones((h, w), dtype=np.uint8) * 255
     try:
         w_key_reg, p_anchors, _, _, _ = register_master_key_v3(orig_bgr, dummy_mask, master_seed=master_seed)
         w_key_susp = extract_key_v3(suspect_bgr, dummy_mask, p_anchors, w_key_reg, orig_bgr.shape)
-        nc_score = compute_nc(w_key_reg, w_key_susp)
-        bit_acc = float(np.mean(w_key_reg == w_key_susp)) * 100.0
-        # If NC < 0.75, tampering/mismatch detected
-        detected = (nc_score < config.NC_THRESHOLD)
-        return {"nc": nc_score, "bit_acc": bit_acc, "detected": detected}
-    except Exception:
-        return {"nc": 0.0, "bit_acc": 50.0, "detected": True}
+        nc = compute_nc(w_key_reg, w_key_susp)
+        acc = float(np.mean(w_key_reg == w_key_susp)) * 100.0
+        return {"nc": nc, "bit_acc": acc, "detected": nc < config.NC_THRESHOLD}
+    except Exception as e:
+        return {"nc": None, "bit_acc": None, "detected": None, "error": str(e)}
 
 
-# ==============================================================================
-# BASELINE 2: Classical Error Level Analysis (ELA)
-# ==============================================================================
-def eval_error_level_analysis(suspect_bgr, quality=95, ela_threshold=14.0):
-    """
-    Classical Forensic ELA: Re-compresses suspect at Q=95 and calculates error surface.
-    AI inpainting re-synthesizes consistent pixel grids, rendering ELA blind.
-    """
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-    ok, encoded = cv2.imencode(".jpg", suspect_bgr, encode_param)
-    compressed = cv2.imdecode(encoded, cv2.IMREAD_COLOR)
-    diff = cv2.absdiff(suspect_bgr, compressed).astype(np.float32)
-
-    # Check for localized error spikes (> threshold)
-    grid = 16
-    h, w = diff.shape[:2]
-    ch, cw = h // grid, w // grid
-    max_block_diff = 0.0
-    for r in range(grid):
-        for c in range(grid):
-            m = diff[r*ch:(r+1)*ch, c*cw:(c+1)*cw].mean()
-            if m > max_block_diff:
-                max_block_diff = m
-
-    detected = bool(max_block_diff > ela_threshold)
-    return {"max_diff": round(float(max_block_diff), 2), "detected": detected}
-
-
-# ==============================================================================
-# BASELINE 3: Rel-Zero Patch-Pair Invariance (Chen et al., 2026 concept)
-# ==============================================================================
-def eval_rel_zero_patch_pairs(orig_bgr, suspect_bgr, n_pairs=256, master_seed=42):
-    """
-    Rel-Zero Concept: Extracts relational invariant differences between pairs of
-    random patches across the image without semantic foreground/background separation.
-    """
+# ── BASELINE 2: Naive patch-pair correlation — OUR OWN heuristic, uncited ───
+def eval_patch_pair_correlation(orig_bgr, suspect_bgr, n_pairs=256, master_seed=42):
+    """A simple sanity-check baseline we designed: compares the sign of mean
+    brightness between random patch pairs. This is NOT a published method —
+    do not attribute it to any paper in the write-up."""
     h, w = orig_bgr.shape[:2]
     patch_size = 16
     rng = np.random.default_rng(master_seed)
     coords_a = [(rng.integers(0, max(1, h - patch_size)), rng.integers(0, max(1, w - patch_size))) for _ in range(n_pairs)]
     coords_b = [(rng.integers(0, max(1, h - patch_size)), rng.integers(0, max(1, w - patch_size))) for _ in range(n_pairs)]
-
-    gray_orig = cv2.cvtColor(orig_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    gray_susp = cv2.cvtColor(suspect_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)
-
-    bits_orig, bits_susp = [], []
+    gray_o = cv2.cvtColor(orig_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    gray_s = cv2.cvtColor(suspect_bgr, cv2.COLOR_BGR2GRAY).astype(np.float32) if suspect_bgr.shape[:2] == orig_bgr.shape[:2] \
+        else cv2.cvtColor(cv2.resize(suspect_bgr, (w, h)), cv2.COLOR_BGR2GRAY).astype(np.float32)
+    bits_o, bits_s = [], []
     for (r1, c1), (r2, c2) in zip(coords_a, coords_b):
-        pA_o = gray_orig[r1:r1+patch_size, c1:c1+patch_size].mean()
-        pB_o = gray_orig[r2:r2+patch_size, c2:c2+patch_size].mean()
-        bits_orig.append(1 if pA_o > pB_o else 0)
-
-        pA_s = gray_susp[r1:r1+patch_size, c1:c1+patch_size].mean()
-        pB_s = gray_susp[r2:r2+patch_size, c2:c2+patch_size].mean()
-        bits_susp.append(1 if pA_s > pB_s else 0)
-
-    bits_orig = np.array(bits_orig, dtype=np.uint8)
-    bits_susp = np.array(bits_susp, dtype=np.uint8)
-    nc_score = compute_nc(bits_orig, bits_susp)
-    bit_acc = float(np.mean(bits_orig == bits_susp)) * 100.0
-
-    return {"nc": nc_score, "bit_acc": bit_acc, "detected": nc_score < config.NC_THRESHOLD}
+        bits_o.append(1 if gray_o[r1:r1+patch_size, c1:c1+patch_size].mean() > gray_o[r2:r2+patch_size, c2:c2+patch_size].mean() else 0)
+        bits_s.append(1 if gray_s[r1:r1+patch_size, c1:c1+patch_size].mean() > gray_s[r2:r2+patch_size, c2:c2+patch_size].mean() else 0)
+    bits_o, bits_s = np.array(bits_o, dtype=np.uint8), np.array(bits_s, dtype=np.uint8)
+    nc = compute_nc(bits_o, bits_s)
+    acc = float(np.mean(bits_o == bits_s)) * 100.0
+    return {"nc": nc, "bit_acc": acc, "detected": nc < config.NC_THRESHOLD}
 
 
-# ==============================================================================
-# PROPOSED FRAMEWORK: YOLO-Guided DWT-DCT + QIM Seal
-# ==============================================================================
-def eval_proposed_framework(orig_bgr, suspect_bgr, master_seed=42):
-    _, _, m_buffer = phase1_ai_roi_isolation(orig_bgr)
-    w_key_reg, p_anchors, _, _, _ = register_master_key_v3(orig_bgr, m_buffer, master_seed=master_seed)
-    signed_img, tamper_hash = embed_tamper_signature(orig_bgr, master_seed=master_seed)
+# ── PROPOSED FRAMEWORK ───────────────────────────────────────────────────────
+# IMPORTANT: unlike the two baselines above (which have no embedding step and
+# so can be evaluated directly against orig_bgr/suspect_bgr), this method's
+# seal check is only meaningful if `suspect_bgr` is derived from an image
+# that was ACTUALLY SIGNED first. The caller (run_all_baselines) is
+# responsible for passing a suspect built from the signed copy for this
+# method specifically - see build_suspects().
+def eval_proposed(orig_bgr, suspect_bgr, master_seed, tamper_hash=None,
+                   w_key_reg=None, p_anchors=None, m_buffer=None):
+    if m_buffer is None:
+        _, _, m_buffer = phase1_ai_roi_isolation(orig_bgr)
+    if w_key_reg is None or p_anchors is None:
+        w_key_reg, p_anchors, _, _, _ = register_master_key_v3(orig_bgr, m_buffer, master_seed=master_seed)
+    if tamper_hash is None:
+        _, tamper_hash = embed_tamper_signature(orig_bgr, master_seed=master_seed)
 
     w_key_susp = extract_key_v3(suspect_bgr, m_buffer, p_anchors, w_key_reg, orig_bgr.shape)
-    nc_score = compute_nc(w_key_reg, w_key_susp)
-    bit_acc = float(np.mean(w_key_reg == w_key_susp)) * 100.0
+    nc = compute_nc(w_key_reg, w_key_susp)
+    acc = float(np.mean(w_key_reg == w_key_susp)) * 100.0
 
     seal = verify_tamper_signature(suspect_bgr, tamper_hash, orig_bgr.shape, master_seed=master_seed)
-    detected = (not seal["seal_intact"]) or (nc_score < config.NC_THRESHOLD)
+    detected = (not seal["seal_intact"]) or (nc < config.NC_THRESHOLD)
+    return {"nc": nc, "bit_acc": acc, "detected": detected,
+            "seal_intact": seal["seal_intact"], "seal_bit_acc": seal.get("seal_bit_acc")}
 
-    return {"nc": nc_score, "bit_acc": bit_acc, "detected": detected}
+
+# needs_signed_suspect=True means: attack a SIGNED copy of the image, not the
+# raw original, because this method has an embedding step that must actually
+# be present for its detection check to mean anything.
+METHODS = {
+    "global_dwt_dct": ("Global DWT-DCT (ablation, no YOLO)", eval_global_dwt_dct, False),
+    "patch_pair":     ("Naive Patch-Pair Correlation (ours, uncited)", eval_patch_pair_correlation, False),
+    "proposed":       ("Proposed Framework (Ours)", eval_proposed, True),
+}
+
+# name -> (fn(orig)->suspect, expect_detected_bool_or_None). None = informational only.
+def build_conditions(orig, ai_img, unrelated_img):
+    conds = {
+        "Untouched (positive control)": (lambda im: im.copy(), False),
+        "JPEG Q=90":                    (lambda im: attack_jpeg(im, 90), False),
+        "JPEG Q=75":                    (lambda im: attack_jpeg(im, 75), False),
+        "JPEG Q=50":                    (lambda im: attack_jpeg(im, 50), False),
+        "True Resize (0.75x)":          (lambda im: attack_resize_true(im, 0.75), False),
+        "True Crop (top 10%)":          (lambda im: attack_crop_true(im, 0.10), True),
+        "Brightness (+20%)":            (lambda im: attack_brightness(im, 1.20), False),
+    }
+    if ai_img is not None:
+        conds["AI-Regeneration (real)"] = (lambda im: ai_img, True)
+    if unrelated_img is not None:
+        conds["Unrelated Image (negative control)"] = (lambda im: unrelated_img, True)
+    return conds
 
 
-# ==============================================================================
-# BATCH BENCHMARK RUNNER
-# ==============================================================================
-def run_all_baselines(orig_dir, ai_dir, max_images=25):
+def run(orig_dir, ai_dir, unrelated_dir, max_images, seed, out_csv):
     orig_files = sorted(glob.glob(os.path.join(orig_dir, "*.*")))
     orig_files = [f for f in orig_files if os.path.splitext(f)[1].lower() in (".png", ".jpg", ".jpeg")][:max_images]
-
     if not orig_files:
-        print(f"❌ No images found in {orig_dir}")
+        print(f"No images found in {orig_dir}")
         return
 
-    print("=" * 90)
-    print(f"🔬 RUNNING COMPARATIVE BASELINE EVALUATION ({len(orig_files)} SCENES)")
-    print(f"   Clean Originals   : {orig_dir}")
-    print(f"   AI-Tampered Feeds : {ai_dir}")
-    print("=" * 90)
-
-    data = {
-        "global_dwt": {"nc": [], "acc": [], "detected": 0, "times": []},
-        "ela":        {"detected": 0, "times": []},
-        "rel_zero":   {"nc": [], "acc": [], "detected": 0, "times": []},
-        "proposed":   {"nc": [], "acc": [], "detected": 0, "times": []},
-    }
-
-    valid_scenes = 0
+    print(f"Running {len(METHODS)} method(s) x up to {len(orig_files)} scene(s) across the full attack matrix ...")
+    rows = []  # one row per (image, method, condition)
 
     for idx, orig_path in enumerate(orig_files, 1):
-        filename = os.path.basename(orig_path)
-        stem = os.path.splitext(filename)[0]
-
-        ai_path = os.path.join(ai_dir, filename)
-        if not os.path.exists(ai_path):
-            ai_matches = glob.glob(os.path.join(ai_dir, f"{stem}_*.*"))
-            if ai_matches:
-                ai_path = ai_matches[0]
-            else:
-                continue
-
+        stem = os.path.splitext(os.path.basename(orig_path))[0]
         orig = cv2.imread(orig_path)
-        susp = cv2.imread(ai_path)
-        if orig is None or susp is None:
+        if orig is None:
             continue
 
-        valid_scenes += 1
-        print(f"[{valid_scenes:02d}/{len(orig_files):02d}] Testing {stem} across all 4 methods ... ", end="", flush=True)
+        ai_img = None
+        if ai_dir:
+            ai_matches = glob.glob(os.path.join(ai_dir, f"{stem}.*")) or glob.glob(os.path.join(ai_dir, f"{stem}_*.*"))
+            if ai_matches:
+                ai_img = cv2.imread(ai_matches[0])
 
-        # 1. Global DWT
-        t0 = time.perf_counter()
-        r1 = eval_global_dwt_dct(orig, susp)
-        data["global_dwt"]["times"].append(time.perf_counter() - t0)
-        data["global_dwt"]["nc"].append(r1["nc"])
-        data["global_dwt"]["acc"].append(r1["bit_acc"])
-        if r1["detected"]: data["global_dwt"]["detected"] += 1
+        unrelated_img = None
+        if unrelated_dir:
+            # deterministic "different" pairing: offset by 1 in the sorted list
+            u_files = sorted(glob.glob(os.path.join(unrelated_dir, "*.*")))
+            u_files = [f for f in u_files if os.path.splitext(f)[1].lower() in (".png", ".jpg", ".jpeg")]
+            if u_files:
+                unrelated_img = cv2.imread(u_files[idx % len(u_files)])
 
-        # 2. ELA
-        t0 = time.perf_counter()
-        r2 = eval_error_level_analysis(susp)
-        data["ela"]["times"].append(time.perf_counter() - t0)
-        if r2["detected"]: data["ela"]["detected"] += 1
+        conditions = build_conditions(orig, ai_img, unrelated_img)
+        print(f"[{idx:02d}/{len(orig_files):02d}] {stem} ... ", end="", flush=True)
 
-        # 3. Rel-Zero
-        t0 = time.perf_counter()
-        r3 = eval_rel_zero_patch_pairs(orig, susp)
-        data["rel_zero"]["times"].append(time.perf_counter() - t0)
-        data["rel_zero"]["nc"].append(r3["nc"])
-        data["rel_zero"]["acc"].append(r3["bit_acc"])
-        if r3["detected"]: data["rel_zero"]["detected"] += 1
+        # Registration artifacts computed ONCE per image and reused across every
+        # condition/method below, instead of re-registering per condition.
+        _, _, m_buffer = phase1_ai_roi_isolation(orig)
+        w_key_reg, p_anchors, _, _, _ = register_master_key_v3(orig, m_buffer, master_seed=seed)
+        signed_img, tamper_hash = embed_tamper_signature(orig, master_seed=seed)
 
-        # 4. Proposed (Ours)
-        t0 = time.perf_counter()
-        r4 = eval_proposed_framework(orig, susp)
-        data["proposed"]["times"].append(time.perf_counter() - t0)
-        data["proposed"]["nc"].append(r4["nc"])
-        data["proposed"]["acc"].append(r4["bit_acc"])
-        if r4["detected"]: data["proposed"]["detected"] += 1
+        for cond_name, (make_suspect, expect_detected) in conditions.items():
+            # Two suspect variants: baselines (no embedding step) attack the
+            # raw original; the Proposed method attacks a SIGNED copy, since
+            # its seal check only means something if a seal was actually
+            # embedded first. For AI-regen/unrelated-image conditions the
+            # lambda ignores its input and returns a fixed real image either
+            # way, so both variants are identical there - this only matters
+            # for the transform-based conditions (JPEG/brightness/etc.).
+            try:
+                suspect_plain = make_suspect(orig)
+                suspect_signed = make_suspect(signed_img)
+            except Exception:
+                continue
 
-        print("Done.")
+            for method_key, (method_label, method_fn, needs_signed) in METHODS.items():
+                suspect = suspect_signed if needs_signed else suspect_plain
+                t0 = time.perf_counter()
+                if method_key == "proposed":
+                    result = method_fn(orig, suspect, seed, tamper_hash=tamper_hash,
+                                        w_key_reg=w_key_reg, p_anchors=p_anchors, m_buffer=m_buffer)
+                else:
+                    result = method_fn(orig, suspect, seed)
+                elapsed = time.perf_counter() - t0
+                rows.append({
+                    "image": stem, "condition": cond_name, "method": method_key,
+                    "nc": result.get("nc"), "bit_acc": result.get("bit_acc"),
+                    "detected": result.get("detected"), "expected_detected": expect_detected,
+                    "correct": (result.get("detected") == expect_detected) if result.get("detected") is not None else None,
+                    "latency_s": round(elapsed, 5),
+                    "seal_bit_acc": result.get("seal_bit_acc"),
+                })
+        print("done")
 
-    if valid_scenes == 0:
-        print("❌ No matching image pairs found.")
+    if not rows:
+        print("No results produced.")
         return
 
-    # ==============================================================================
-    # PRINT SUMMARY TABLE
-    # ==============================================================================
-    print("\n" + "=" * 95)
-    print(f"  COMPARATIVE FORENSICS BENCHMARK SUMMARY (N={valid_scenes} Scenes)")
-    print("=" * 95)
-    print(f"{'Method / Baseline':<32} | {'Mean NC Score':<16} | {'Bit Accuracy':<14} | {'Tamper Detection Rate':<22} | {'Avg Latency':<12}")
-    print("-" * 95)
+    os.makedirs(os.path.dirname(out_csv) or ".", exist_ok=True)
+    with open(out_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"\nPer-image raw results -> {out_csv}  (every number below is traceable to this file)")
 
-    # 1. Global DWT
-    g_nc = f"{np.mean(data['global_dwt']['nc']):.4f} ± {np.std(data['global_dwt']['nc']):.3f}"
-    g_acc = f"{np.mean(data['global_dwt']['acc']):.2f}%"
-    g_det = f"{(data['global_dwt']['detected'] / valid_scenes) * 100:.1f}% ({data['global_dwt']['detected']}/{valid_scenes})"
-    g_time = f"{np.mean(data['global_dwt']['times']):.3f}s"
-    print(f"{'1. Global DWT-DCT (No YOLO)':<32} | {g_nc:<16} | {g_acc:<14} | {g_det:<22} | {g_time:<12}")
-
-    # 2. ELA
-    ela_det = f"{(data['ela']['detected'] / valid_scenes) * 100:.1f}% ({data['ela']['detected']}/{valid_scenes})"
-    ela_time = f"{np.mean(data['ela']['times']):.3f}s"
-    print(f"{'2. Classical ELA (JPEG Q95)':<32} | {'N/A':<16} | {'N/A':<14} | {ela_det:<22} | {ela_time:<12}")
-
-    # 3. Rel-Zero
-    rz_nc = f"{np.mean(data['rel_zero']['nc']):.4f} ± {np.std(data['rel_zero']['nc']):.3f}"
-    rz_acc = f"{np.mean(data['rel_zero']['acc']):.2f}%"
-    rz_det = f"{(data['rel_zero']['detected'] / valid_scenes) * 100:.1f}% ({data['rel_zero']['detected']}/{valid_scenes})"
-    rz_time = f"{np.mean(data['rel_zero']['times']):.3f}s"
-    print(f"{'3. Rel-Zero (Patch-Pair)':<32} | {rz_nc:<16} | {rz_acc:<14} | {rz_det:<22} | {rz_time:<12}")
-
-    # 4. Proposed (Ours)
-    p_nc = f"{np.mean(data['proposed']['nc']):.4f} ± {np.std(data['proposed']['nc']):.3f}"
-    p_acc = f"{np.mean(data['proposed']['acc']):.2f}%"
-    p_det = f"{(data['proposed']['detected'] / valid_scenes) * 100:.1f}% ({data['proposed']['detected']}/{valid_scenes})"
-    p_time = f"{np.mean(data['proposed']['times']):.3f}s"
-    print(f"{'4. Proposed Framework (Ours)':<32} | {p_nc:<16} | {p_acc:<14} | {p_det:<22} | {p_time:<12}")
-    print("=" * 95)
-
-    # ==============================================================================
-    # PRINT LATEX TABLE (Ready to paste into Overleaf)
-    # ==============================================================================
-    print("\n" + "=" * 95)
-    print("  LATEX CODE FOR OVERLEAF (COMPARATIVE BASELINES)")
-    print("=" * 95)
-    print("\\begin{table}[h]")
-    print("\\centering")
-    print(f"\\caption{{Comparative Evaluation of Proposed Framework against Baselines ($N={valid_scenes}$).}}")
-    print("\\begin{tabular}{l c c c c}")
-    print("\\hline")
-    print("Method & Mean NC Score & Bit Acc (\\%) & Detection Rate (\\%) & Latency (s) \\\\")
-    print("\\hline")
-    print(f"Global DWT-DCT (No YOLO) & {np.mean(data['global_dwt']['nc']):.3f} & {np.mean(data['global_dwt']['acc']):.1f}\\% & {(data['global_dwt']['detected'] / valid_scenes) * 100:.1f}\\% & {np.mean(data['global_dwt']['times']):.3f} \\\\")
-    print(f"Classical ELA (JPEG Q95) & N/A & N/A & {(data['ela']['detected'] / valid_scenes) * 100:.1f}\\% & {np.mean(data['ela']['times']):.3f} \\\\")
-    print(f"Rel-Zero (Patch-Pair) & {np.mean(data['rel_zero']['nc']):.3f} & {np.mean(data['rel_zero']['acc']):.1f}\\% & {(data['rel_zero']['detected'] / valid_scenes) * 100:.1f}\\% & {np.mean(data['rel_zero']['times']):.3f} \\\\")
-    print(f"\\textbf{{Proposed Framework (Ours)}} & \\textbf{{{np.mean(data['proposed']['nc']):.3f}}} & \\textbf{{{np.mean(data['proposed']['acc']):.1f}\\%}} & \\textbf{{{(data['proposed']['detected'] / valid_scenes) * 100:.1f}\\%}} & {np.mean(data['proposed']['times']):.3f} \\\\")
-    print("\\hline")
-    print("\\end{tabular}")
-    print("\\end{table}")
-    print("=" * 95)
+    # ── Summary table ─────────────────────────────────────────────────────
+    conditions_order = list(build_conditions(None, "x", "x").keys())  # for stable ordering
+    print("\n" + "=" * 100)
+    print(f"  METHOD x CONDITION SUMMARY  (seed={seed})")
+    print("=" * 100)
+    header = f"{'Condition':<32} | " + " | ".join(f"{METHODS[m][0][:22]:<22}" for m in METHODS)
+    print(header)
+    print("-" * len(header))
+    for cond in conditions_order:
+        cells = []
+        for method_key in METHODS:
+            sub = [r for r in rows if r["condition"] == cond and r["method"] == method_key and r["nc"] is not None]
+            if not sub:
+                cells.append(f"{'n/a':<22}")
+                continue
+            n_correct = sum(1 for r in sub if r["correct"])
+            n = len(sub)
+            lo, hi = wilson_ci(n_correct, n)
+            mean_nc = np.mean([r["nc"] for r in sub])
+            cells.append(f"NC={mean_nc:+.3f} acc={100*n_correct/n:.0f}%[{100*lo:.0f}-{100*hi:.0f}]" [:22].ljust(22))
+        print(f"{cond:<32} | " + " | ".join(cells))
+    print("=" * 100)
+    print("Cell format: mean NC | correct-decision rate (95% Wilson CI). 'Correct' means the")
+    print("method's detected/allowed verdict matched the ground truth for that condition.")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Baseline Comparison")
-    parser.add_argument("--orig_dir", required=True, help="Folder of clean original images")
-    parser.add_argument("--ai_dir", required=True, help="Folder of AI-tampered images")
-    parser.add_argument("--max", type=int, default=25, help="Number of scenes to evaluate")
-    parser.add_argument("--passphrase", "-p", default=None, help="Vault passphrase (omit to be prompted)")
-    args = parser.parse_args()
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--orig_dir", required=True)
+    ap.add_argument("--ai_dir", default=None)
+    ap.add_argument("--unrelated_dir", default=None)
+    ap.add_argument("--max", type=int, default=25)
+    ap.add_argument("--seed", type=int, default=42, help="Seed used for the ABLATION baselines only "
+                     "(global_dwt_dct, patch_pair) - kept fixed and logged for reproducibility. The "
+                     "proposed framework's real deployment key is separate and never a fixed value.")
+    ap.add_argument("--out_csv", default=os.path.join(config.DATA_DIR, "baseline_comparison_raw.csv"))
+    ap.add_argument("--passphrase", "-p", default=None)
+    args = ap.parse_args()
 
     load_secrets(args.passphrase)
-    run_all_baselines(args.orig_dir, args.ai_dir, max_images=args.max)
+    run(args.orig_dir, args.ai_dir, args.unrelated_dir, args.max, args.seed, args.out_csv)

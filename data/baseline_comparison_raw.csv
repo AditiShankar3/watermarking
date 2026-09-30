@@ -1,0 +1,673 @@
+image,condition,method,nc,bit_acc,detected,expected_detected,correct,latency_s,seal_bit_acc
+100103,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.4318,
+100103,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00281,
+100103,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19861,100.0
+100103,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.44086,
+100103,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00295,
+100103,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.20229,100.0
+100103,JPEG Q=75,global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.41641,
+100103,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00463,
+100103,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.26947,100.0
+100103,JPEG Q=50,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.41668,
+100103,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00284,
+100103,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.21664,100.0
+100103,True Resize (0.75x),global_dwt_dct,-0.023437499999908448,48.828125,True,False,False,0.3209,
+100103,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00505,
+100103,True Resize (0.75x),proposed,-0.046874999999816896,47.65625,True,False,False,0.11709,86.328125
+100103,True Crop (top 10%),global_dwt_dct,0.10937499999957276,55.46875,True,True,True,0.37718,
+100103,True Crop (top 10%),patch_pair,0.6190476190328799,80.95238095238095,True,True,True,0.00567,
+100103,True Crop (top 10%),proposed,0.1406249999994507,57.03125,True,True,True,0.23399,50.390625
+100103,Brightness (+20%),global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.42196,
+100103,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00268,
+100103,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.22442,91.796875
+100103,AI-Regeneration (real),global_dwt_dct,0.07812499999969483,53.90625,True,True,True,0.30831,
+100103,AI-Regeneration (real),patch_pair,0.7619047618866214,88.09523809523809,False,True,False,0.00492,
+100103,AI-Regeneration (real),proposed,0.015624999999938965,50.78125,True,True,True,0.10489,48.828125
+100103,Unrelated Image (negative control),global_dwt_dct,0.09374999999963379,54.6875,True,True,True,0.24588,
+100103,Unrelated Image (negative control),patch_pair,0.09523809523582767,54.761904761904766,True,True,True,0.00477,
+100103,Unrelated Image (negative control),proposed,0.06249999999975586,53.125,True,True,True,0.06029,51.5625
+100523,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39049,
+100523,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00242,
+100523,Untouched (positive control),proposed,0.9609374999962463,98.046875,False,False,True,0.20496,100.0
+100523,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.40517,
+100523,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+100523,JPEG Q=90,proposed,0.9609374999962463,98.046875,False,False,True,0.20884,100.0
+100523,JPEG Q=75,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38935,
+100523,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+100523,JPEG Q=75,proposed,0.9609374999962463,98.046875,False,False,True,0.19805,100.0
+100523,JPEG Q=50,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.38891,
+100523,JPEG Q=50,patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00238,
+100523,JPEG Q=50,proposed,0.9765624999961854,98.828125,False,False,True,0.20058,99.609375
+100523,True Resize (0.75x),global_dwt_dct,0.039062499999847414,51.953125,True,False,False,0.30323,
+100523,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00476,
+100523,True Resize (0.75x),proposed,0.0,50.0,True,False,False,0.11416,91.40625
+100523,True Crop (top 10%),global_dwt_dct,0.007812499999969483,50.390625,True,True,True,0.369,
+100523,True Crop (top 10%),patch_pair,0.3809523809433107,69.04761904761905,True,True,True,0.00502,
+100523,True Crop (top 10%),proposed,-0.046874999999816896,47.65625,True,True,True,0.18142,50.78125
+100523,Brightness (+20%),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38742,
+100523,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00279,
+100523,Brightness (+20%),proposed,0.9609374999962463,98.046875,True,False,False,0.19691,91.40625
+100523,AI-Regeneration (real),global_dwt_dct,-0.16406249999935915,41.796875,True,True,True,0.2917,
+100523,AI-Regeneration (real),patch_pair,0.42857142856122454,71.42857142857143,True,True,True,0.00469,
+100523,AI-Regeneration (real),proposed,-0.26562499999896244,36.71875,True,True,True,0.10295,45.3125
+100523,Unrelated Image (negative control),global_dwt_dct,0.10156249999960328,55.078125,True,True,True,0.22972,
+100523,Unrelated Image (negative control),patch_pair,-0.09523809523582767,45.23809523809524,True,True,True,0.00378,
+100523,Unrelated Image (negative control),proposed,0.14843749999942019,57.421875,True,True,True,0.03765,49.21875
+10357,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.3884,
+10357,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00257,
+10357,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19779,100.0
+10357,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.43553,
+10357,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00301,
+10357,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.20901,100.0
+10357,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38771,
+10357,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+10357,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.19642,100.0
+10357,JPEG Q=50,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38552,
+10357,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00245,
+10357,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.19682,100.0
+10357,True Resize (0.75x),global_dwt_dct,-0.03124999999987793,48.4375,True,False,False,0.34298,
+10357,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00476,
+10357,True Resize (0.75x),proposed,-0.10937499999957276,44.53125,True,False,False,0.114,94.921875
+10357,True Crop (top 10%),global_dwt_dct,0.20312499999920655,60.15625,True,True,True,0.36929,
+10357,True Crop (top 10%),patch_pair,0.47619047617913834,73.80952380952381,True,True,True,0.00501,
+10357,True Crop (top 10%),proposed,0.17968749999929812,58.984375,True,True,True,0.18145,50.0
+10357,Brightness (+20%),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38707,
+10357,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00241,
+10357,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.19746,95.703125
+10357,AI-Regeneration (real),global_dwt_dct,0.007812499999969483,50.390625,True,True,True,0.29319,
+10357,AI-Regeneration (real),patch_pair,0.8095238095045352,90.47619047619048,False,True,False,0.0047,
+10357,AI-Regeneration (real),proposed,-0.07812499999969483,46.09375,True,True,True,0.10318,44.53125
+10357,Unrelated Image (negative control),global_dwt_dct,0.06249999999975586,53.125,True,True,True,0.21848,
+10357,Unrelated Image (negative control),patch_pair,-0.14285714285374151,42.857142857142854,True,True,True,0.00397,
+10357,Unrelated Image (negative control),proposed,0.13281249999948122,56.640625,True,True,True,0.02871,49.21875
+105219,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38714,
+105219,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+105219,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19766,100.0
+105219,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38868,
+105219,JPEG Q=90,patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00323,
+105219,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19656,100.0
+105219,JPEG Q=75,global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.43083,
+105219,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00253,
+105219,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.20559,100.0
+105219,JPEG Q=50,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.38641,
+105219,JPEG Q=50,patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.0026,
+105219,JPEG Q=50,proposed,0.9843749999961549,99.21875,False,False,True,0.19672,100.0
+105219,True Resize (0.75x),global_dwt_dct,-0.015624999999938965,49.21875,True,False,False,0.30263,
+105219,True Resize (0.75x),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00475,
+105219,True Resize (0.75x),proposed,-0.06249999999975586,46.875,True,False,False,0.11391,98.046875
+105219,True Crop (top 10%),global_dwt_dct,0.17968749999929812,58.984375,True,True,True,0.36723,
+105219,True Crop (top 10%),patch_pair,0.42857142856122454,71.42857142857143,True,True,True,0.00499,
+105219,True Crop (top 10%),proposed,0.17968749999929812,58.984375,True,True,True,0.18047,54.6875
+105219,Brightness (+20%),global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.38513,
+105219,Brightness (+20%),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00238,
+105219,Brightness (+20%),proposed,0.9843749999961549,99.21875,True,False,False,0.19684,98.046875
+105219,AI-Regeneration (real),global_dwt_dct,-0.023437499999908448,48.828125,True,True,True,0.29126,
+105219,AI-Regeneration (real),patch_pair,0.6666666666507937,83.33333333333334,True,True,True,0.00464,
+105219,AI-Regeneration (real),proposed,0.039062499999847414,51.953125,True,True,True,0.10306,55.078125
+105219,Unrelated Image (negative control),global_dwt_dct,-0.06249999999975586,46.875,True,True,True,0.49419,
+105219,Unrelated Image (negative control),patch_pair,-0.14285714285374151,42.857142857142854,True,True,True,0.00565,
+105219,Unrelated Image (negative control),proposed,0.11718749999954224,55.859375,True,True,True,0.29937,57.03125
+11032,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38831,
+11032,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+11032,Untouched (positive control),proposed,0.9453124999963074,97.265625,False,False,True,0.19712,100.0
+11032,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38877,
+11032,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00245,
+11032,JPEG Q=90,proposed,0.9453124999963074,97.265625,False,False,True,0.19644,100.0
+11032,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38599,
+11032,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00313,
+11032,JPEG Q=75,proposed,0.9609374999962463,98.046875,False,False,True,0.19636,100.0
+11032,JPEG Q=50,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.3872,
+11032,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+11032,JPEG Q=50,proposed,0.9765624999961854,98.828125,False,False,True,0.19656,100.0
+11032,True Resize (0.75x),global_dwt_dct,-0.13281249999948122,43.359375,True,False,False,0.30295,
+11032,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00494,
+11032,True Resize (0.75x),proposed,0.08593749999966431,54.296875,True,False,False,0.11413,98.4375
+11032,True Crop (top 10%),global_dwt_dct,0.07031249999972534,53.515625,True,True,True,0.36749,
+11032,True Crop (top 10%),patch_pair,0.33333333332539683,66.66666666666666,True,True,True,0.00519,
+11032,True Crop (top 10%),proposed,0.05468749999978638,52.734375,True,True,True,0.18018,50.390625
+11032,Brightness (+20%),global_dwt_dct,0.9765624999961854,98.828125,False,False,True,0.38531,
+11032,Brightness (+20%),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.0024,
+11032,Brightness (+20%),proposed,0.9687499999962159,98.4375,True,False,False,0.19673,96.09375
+11032,AI-Regeneration (real),global_dwt_dct,0.03124999999987793,51.5625,True,True,True,0.29044,
+11032,AI-Regeneration (real),patch_pair,0.6666666666507937,83.33333333333334,True,True,True,0.00468,
+11032,AI-Regeneration (real),proposed,-0.023437499999908448,48.828125,True,True,True,0.10237,46.484375
+11032,Unrelated Image (negative control),global_dwt_dct,-0.10156249999960328,44.921875,True,True,True,0.42021,
+11032,Unrelated Image (negative control),patch_pair,-0.047619047617913836,47.61904761904761,True,True,True,0.00578,
+11032,Unrelated Image (negative control),proposed,0.18749999999926759,59.375,True,True,True,0.23322,51.953125
+111015,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39617,
+111015,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00241,
+111015,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19647,100.0
+111015,JPEG Q=90,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38729,
+111015,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+111015,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19627,100.0
+111015,JPEG Q=75,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.38783,
+111015,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+111015,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.19727,100.0
+111015,JPEG Q=50,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38662,
+111015,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+111015,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.19628,100.0
+111015,True Resize (0.75x),global_dwt_dct,-0.03124999999987793,48.4375,True,False,False,0.3047,
+111015,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00475,
+111015,True Resize (0.75x),proposed,0.023437499999908448,51.171875,True,False,False,0.11409,95.3125
+111015,True Crop (top 10%),global_dwt_dct,-0.06249999999975586,46.875,True,True,True,0.3673,
+111015,True Crop (top 10%),patch_pair,0.47619047617913834,73.80952380952381,True,True,True,0.00498,
+111015,True Crop (top 10%),proposed,0.039062499999847414,51.953125,True,True,True,0.18451,52.734375
+111015,Brightness (+20%),global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.39026,
+111015,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+111015,Brightness (+20%),proposed,0.9843749999961549,99.21875,True,False,False,0.19699,94.53125
+111015,AI-Regeneration (real),global_dwt_dct,-0.1406249999994507,42.96875,True,True,True,0.29087,
+111015,AI-Regeneration (real),patch_pair,0.5714285714149661,78.57142857142857,True,True,True,0.00466,
+111015,AI-Regeneration (real),proposed,-0.16406249999935915,41.796875,True,True,True,0.10296,49.609375
+111015,Unrelated Image (negative control),global_dwt_dct,-0.039062499999847414,48.046875,True,True,True,0.34443,
+111015,Unrelated Image (negative control),patch_pair,0.047619047617913836,52.38095238095239,True,True,True,0.00559,
+111015,Unrelated Image (negative control),proposed,0.039062499999847414,51.953125,True,True,True,0.1204,53.125
+122253,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.41833,
+122253,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00292,
+122253,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.20361,100.0
+122253,JPEG Q=90,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.39458,
+122253,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00263,
+122253,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.20503,100.0
+122253,JPEG Q=75,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.39551,
+122253,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00249,
+122253,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.19993,100.0
+122253,JPEG Q=50,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.39546,
+122253,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00242,
+122253,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.20337,100.0
+122253,True Resize (0.75x),global_dwt_dct,-0.05468749999978638,47.265625,True,False,False,0.30462,
+122253,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00495,
+122253,True Resize (0.75x),proposed,0.07812499999969483,53.90625,True,False,False,0.12775,96.484375
+122253,True Crop (top 10%),global_dwt_dct,0.046874999999816896,52.34375,True,True,True,0.36989,
+122253,True Crop (top 10%),patch_pair,0.42857142856122454,71.42857142857143,True,True,True,0.00498,
+122253,True Crop (top 10%),proposed,0.15624999999938965,57.8125,True,True,True,0.1861,50.390625
+122253,Brightness (+20%),global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.38925,
+122253,Brightness (+20%),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00245,
+122253,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.20186,98.828125
+122253,AI-Regeneration (real),global_dwt_dct,0.03124999999987793,51.5625,True,True,True,0.29234,
+122253,AI-Regeneration (real),patch_pair,0.7619047618866214,88.09523809523809,False,True,False,0.00473,
+122253,AI-Regeneration (real),proposed,-0.07031249999972534,46.484375,True,True,True,0.10292,50.78125
+122253,Unrelated Image (negative control),global_dwt_dct,-0.06249999999975586,46.875,True,True,True,0.30714,
+122253,Unrelated Image (negative control),patch_pair,0.19047619047165534,59.523809523809526,True,True,True,0.00537,
+122253,Unrelated Image (negative control),proposed,-0.06249999999975586,46.875,True,True,True,0.11946,52.734375
+122674,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38776,
+122674,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00243,
+122674,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.1965,100.0
+122674,JPEG Q=90,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.38676,
+122674,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+122674,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19803,100.0
+122674,JPEG Q=75,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.38501,
+122674,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00235,
+122674,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.19636,100.0
+122674,JPEG Q=50,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38577,
+122674,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+122674,JPEG Q=50,proposed,0.9687499999962159,98.4375,False,False,True,0.19662,100.0
+122674,True Resize (0.75x),global_dwt_dct,0.05468749999978638,52.734375,True,False,False,0.30484,
+122674,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00478,
+122674,True Resize (0.75x),proposed,-0.007812499999969483,49.609375,True,False,False,0.1135,94.921875
+122674,True Crop (top 10%),global_dwt_dct,0.21093749999917605,60.546875,True,True,True,0.41273,
+122674,True Crop (top 10%),patch_pair,0.33333333332539683,66.66666666666666,True,True,True,0.00509,
+122674,True Crop (top 10%),proposed,0.10937499999957276,55.46875,True,True,True,0.1822,58.984375
+122674,Brightness (+20%),global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38688,
+122674,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+122674,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.19705,94.53125
+122674,AI-Regeneration (real),global_dwt_dct,0.05468749999978638,52.734375,True,True,True,0.29131,
+122674,AI-Regeneration (real),patch_pair,0.8095238095045352,90.47619047619048,False,True,False,0.00466,
+122674,AI-Regeneration (real),proposed,-0.07031249999972534,46.484375,True,True,True,0.1079,55.078125
+122674,Unrelated Image (negative control),global_dwt_dct,-0.08593749999966431,45.703125,True,True,True,0.37753,
+122674,Unrelated Image (negative control),patch_pair,-0.09523809523582767,45.23809523809524,True,True,True,0.00791,
+122674,Unrelated Image (negative control),proposed,-0.08593749999966431,45.703125,True,True,True,0.12223,55.46875
+130001,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38921,
+130001,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+130001,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19663,100.0
+130001,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39186,
+130001,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+130001,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19605,100.0
+130001,JPEG Q=75,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38687,
+130001,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00243,
+130001,JPEG Q=75,proposed,0.9687499999962159,98.4375,False,False,True,0.19754,100.0
+130001,JPEG Q=50,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38752,
+130001,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+130001,JPEG Q=50,proposed,0.9687499999962159,98.4375,False,False,True,0.19822,100.0
+130001,True Resize (0.75x),global_dwt_dct,-0.06249999999975586,46.875,True,False,False,0.31244,
+130001,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00552,
+130001,True Resize (0.75x),proposed,-0.023437499999908448,48.828125,True,False,False,0.12112,88.671875
+130001,True Crop (top 10%),global_dwt_dct,0.07031249999972534,53.515625,True,True,True,0.46607,
+130001,True Crop (top 10%),patch_pair,0.28571428570748303,64.28571428571429,True,True,True,0.00564,
+130001,True Crop (top 10%),proposed,0.015624999999938965,50.78125,True,True,True,0.24846,46.875
+130001,Brightness (+20%),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38985,
+130001,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+130001,Brightness (+20%),proposed,0.9687499999962159,98.4375,True,False,False,0.19723,93.359375
+130001,AI-Regeneration (real),global_dwt_dct,-0.05468749999978638,47.265625,True,True,True,0.29399,
+130001,AI-Regeneration (real),patch_pair,0.7142857142687076,85.71428571428571,True,True,True,0.00468,
+130001,AI-Regeneration (real),proposed,-0.1406249999994507,42.96875,True,True,True,0.10269,52.34375
+130001,Unrelated Image (negative control),global_dwt_dct,-0.05468749999978638,47.265625,True,True,True,0.30311,
+130001,Unrelated Image (negative control),patch_pair,0.09523809523582767,54.761904761904766,True,True,True,0.00533,
+130001,Unrelated Image (negative control),proposed,-0.015624999999938965,49.21875,True,True,True,0.11434,53.515625
+130118,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38706,
+130118,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+130118,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.1983,100.0
+130118,JPEG Q=90,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38697,
+130118,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+130118,JPEG Q=90,proposed,0.9921874999961243,99.609375,False,False,True,0.19691,100.0
+130118,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38943,
+130118,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+130118,JPEG Q=75,proposed,0.9999999999960938,100.0,False,False,True,0.19783,100.0
+130118,JPEG Q=50,global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.38577,
+130118,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00241,
+130118,JPEG Q=50,proposed,0.9999999999960938,100.0,False,False,True,0.19657,100.0
+130118,True Resize (0.75x),global_dwt_dct,0.03124999999987793,51.5625,True,False,False,0.31432,
+130118,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00486,
+130118,True Resize (0.75x),proposed,-0.06249999999975586,46.875,True,False,False,0.11504,98.4375
+130118,True Crop (top 10%),global_dwt_dct,0.11718749999954224,55.859375,True,True,True,0.36666,
+130118,True Crop (top 10%),patch_pair,0.33333333332539683,66.66666666666666,True,True,True,0.005,
+130118,True Crop (top 10%),proposed,0.10156249999960328,55.078125,True,True,True,0.18428,49.609375
+130118,Brightness (+20%),global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.39482,
+130118,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+130118,Brightness (+20%),proposed,0.9999999999960938,100.0,True,False,False,0.1967,98.046875
+130118,AI-Regeneration (real),global_dwt_dct,-0.015624999999938965,49.21875,True,True,True,0.29098,
+130118,AI-Regeneration (real),patch_pair,0.5714285714149661,78.57142857142857,True,True,True,0.00467,
+130118,AI-Regeneration (real),proposed,-0.23437499999908448,38.28125,True,True,True,0.10282,57.03125
+130118,Unrelated Image (negative control),global_dwt_dct,0.0,50.0,True,True,True,0.21924,
+130118,Unrelated Image (negative control),patch_pair,0.047619047617913836,52.38095238095239,True,True,True,0.00391,
+130118,Unrelated Image (negative control),proposed,-0.14843749999942019,42.578125,True,True,True,0.03004,55.078125
+134409,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38573,
+134409,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+134409,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19747,100.0
+134409,JPEG Q=90,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38717,
+134409,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+134409,JPEG Q=90,proposed,0.9609374999962463,98.046875,False,False,True,0.19667,100.0
+134409,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.40286,
+134409,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+134409,JPEG Q=75,proposed,0.9609374999962463,98.046875,False,False,True,0.19608,100.0
+134409,JPEG Q=50,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.38465,
+134409,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+134409,JPEG Q=50,proposed,0.9609374999962463,98.046875,False,False,True,0.19591,100.0
+134409,True Resize (0.75x),global_dwt_dct,-0.12499999999951172,43.75,True,False,False,0.30243,
+134409,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00471,
+134409,True Resize (0.75x),proposed,-0.10156249999960328,44.921875,True,False,False,0.11331,95.3125
+134409,True Crop (top 10%),global_dwt_dct,-0.007812499999969483,49.609375,True,True,True,0.36701,
+134409,True Crop (top 10%),patch_pair,0.47619047617913834,73.80952380952381,True,True,True,0.00497,
+134409,True Crop (top 10%),proposed,-0.03124999999987793,48.4375,True,True,True,0.17994,50.0
+134409,Brightness (+20%),global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.38501,
+134409,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00235,
+134409,Brightness (+20%),proposed,0.9687499999962159,98.4375,True,False,False,0.19575,96.875
+134409,AI-Regeneration (real),global_dwt_dct,-0.03124999999987793,48.4375,True,True,True,0.29552,
+134409,AI-Regeneration (real),patch_pair,0.8571428571224491,92.85714285714286,False,True,False,0.00468,
+134409,AI-Regeneration (real),proposed,0.007812499999969483,50.390625,True,True,True,0.10426,46.875
+134409,Unrelated Image (negative control),global_dwt_dct,-0.007812499999969483,49.609375,True,True,True,0.25893,
+134409,Unrelated Image (negative control),patch_pair,-0.14285714285374151,42.857142857142854,True,True,True,0.0049,
+134409,Unrelated Image (negative control),proposed,0.039062499999847414,51.953125,True,True,True,0.07158,46.484375
+137634,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.41399,
+137634,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00357,
+137634,Untouched (positive control),proposed,0.9609374999962463,98.046875,False,False,True,0.19772,100.0
+137634,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.41542,
+137634,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+137634,JPEG Q=90,proposed,0.9609374999962463,98.046875,False,False,True,0.19689,100.0
+137634,JPEG Q=75,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.38645,
+137634,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+137634,JPEG Q=75,proposed,0.9687499999962159,98.4375,False,False,True,0.19779,100.0
+137634,JPEG Q=50,global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.38844,
+137634,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00247,
+137634,JPEG Q=50,proposed,0.9765624999961854,98.828125,False,False,True,0.20695,100.0
+137634,True Resize (0.75x),global_dwt_dct,-0.07031249999972534,46.484375,True,False,False,0.30307,
+137634,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00485,
+137634,True Resize (0.75x),proposed,-0.17187499999932862,41.40625,True,False,False,0.11445,98.4375
+137634,True Crop (top 10%),global_dwt_dct,0.07031249999972534,53.515625,True,True,True,0.3682,
+137634,True Crop (top 10%),patch_pair,0.3809523809433107,69.04761904761905,True,True,True,0.00592,
+137634,True Crop (top 10%),proposed,0.015624999999938965,50.78125,True,True,True,0.19121,57.03125
+137634,Brightness (+20%),global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.46011,
+137634,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00261,
+137634,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.19885,98.046875
+137634,AI-Regeneration (real),global_dwt_dct,-0.17187499999932862,41.40625,True,True,True,0.2928,
+137634,AI-Regeneration (real),patch_pair,0.7619047618866214,88.09523809523809,False,True,False,0.00482,
+137634,AI-Regeneration (real),proposed,-0.09374999999963379,45.3125,True,True,True,0.1039,52.34375
+137634,Unrelated Image (negative control),global_dwt_dct,0.015624999999938965,50.78125,True,True,True,0.21818,
+137634,Unrelated Image (negative control),patch_pair,-0.14285714285374151,42.857142857142854,True,True,True,0.00391,
+137634,Unrelated Image (negative control),proposed,-0.05468749999978638,47.265625,True,True,True,0.02687,50.78125
+141588,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.3857,
+141588,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+141588,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19582,100.0
+141588,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38615,
+141588,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+141588,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19812,100.0
+141588,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39589,
+141588,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.0025,
+141588,JPEG Q=75,proposed,0.9609374999962463,98.046875,False,False,True,0.20337,100.0
+141588,JPEG Q=50,global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.39568,
+141588,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00253,
+141588,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.20553,100.0
+141588,True Resize (0.75x),global_dwt_dct,-0.039062499999847414,48.046875,True,False,False,0.30241,
+141588,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00474,
+141588,True Resize (0.75x),proposed,-0.1406249999994507,42.96875,True,False,False,0.11369,98.046875
+141588,True Crop (top 10%),global_dwt_dct,0.12499999999951172,56.25,True,True,True,0.36952,
+141588,True Crop (top 10%),patch_pair,0.33333333332539683,66.66666666666666,True,True,True,0.00504,
+141588,True Crop (top 10%),proposed,0.07031249999972534,53.515625,True,True,True,0.22783,51.171875
+141588,Brightness (+20%),global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.39815,
+141588,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00251,
+141588,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.2088,95.703125
+141588,Unrelated Image (negative control),global_dwt_dct,-0.046874999999816896,47.65625,True,True,True,0.2284,
+141588,Unrelated Image (negative control),patch_pair,-0.19047619047165534,40.476190476190474,True,True,True,0.00402,
+141588,Unrelated Image (negative control),proposed,0.039062499999847414,51.953125,True,True,True,0.03514,48.046875
+142025,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.41351,
+142025,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.0036,
+142025,Untouched (positive control),proposed,0.9609374999962463,98.046875,False,False,True,0.21861,100.0
+142025,JPEG Q=90,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.39545,
+142025,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+142025,JPEG Q=90,proposed,0.9609374999962463,98.046875,False,False,True,0.19575,100.0
+142025,JPEG Q=75,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38451,
+142025,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+142025,JPEG Q=75,proposed,0.9453124999963074,97.265625,False,False,True,0.19784,100.0
+142025,JPEG Q=50,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.38663,
+142025,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+142025,JPEG Q=50,proposed,0.9765624999961854,98.828125,False,False,True,0.19705,100.0
+142025,True Resize (0.75x),global_dwt_dct,-0.039062499999847414,48.046875,True,False,False,0.30242,
+142025,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00475,
+142025,True Resize (0.75x),proposed,-0.03124999999987793,48.4375,True,False,False,0.11347,93.359375
+142025,True Crop (top 10%),global_dwt_dct,-0.11718749999954224,44.140625,True,True,True,0.36719,
+142025,True Crop (top 10%),patch_pair,0.5238095237970521,76.19047619047619,True,True,True,0.00499,
+142025,True Crop (top 10%),proposed,-0.039062499999847414,48.046875,True,True,True,0.18001,53.515625
+142025,Brightness (+20%),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.3853,
+142025,Brightness (+20%),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00239,
+142025,Brightness (+20%),proposed,0.9453124999963074,97.265625,True,False,False,0.1977,94.53125
+142025,AI-Regeneration (real),global_dwt_dct,-0.039062499999847414,48.046875,True,True,True,0.29739,
+142025,AI-Regeneration (real),patch_pair,0.7142857142687076,85.71428571428571,True,True,True,0.00468,
+142025,AI-Regeneration (real),proposed,-0.039062499999847414,48.046875,True,True,True,0.1024,47.265625
+142025,Unrelated Image (negative control),global_dwt_dct,0.05468749999978638,52.734375,True,True,True,0.31338,
+142025,Unrelated Image (negative control),patch_pair,-0.28571428570748303,35.714285714285715,True,True,True,0.00535,
+142025,Unrelated Image (negative control),proposed,0.07812499999969483,53.90625,True,True,True,0.12614,50.0
+311217,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38678,
+311217,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+311217,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19647,100.0
+311217,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38866,
+311217,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+311217,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19771,100.0
+311217,JPEG Q=75,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.4227,
+311217,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00357,
+311217,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.20191,100.0
+311217,JPEG Q=50,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.38657,
+311217,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00242,
+311217,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.19766,100.0
+311217,True Resize (0.75x),global_dwt_dct,-0.16406249999935915,41.796875,True,False,False,0.34494,
+311217,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00505,
+311217,True Resize (0.75x),proposed,-0.21874999999914552,39.0625,True,False,False,0.12014,98.4375
+311217,True Crop (top 10%),global_dwt_dct,0.16406249999935915,58.203125,True,True,True,0.37622,
+311217,True Crop (top 10%),patch_pair,0.47619047617913834,73.80952380952381,True,True,True,0.00525,
+311217,True Crop (top 10%),proposed,0.09374999999963379,54.6875,True,True,True,0.18171,48.828125
+311217,Brightness (+20%),global_dwt_dct,0.9765624999961854,98.828125,False,False,True,0.39548,
+311217,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+311217,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.19842,99.21875
+311217,AI-Regeneration (real),global_dwt_dct,-0.11718749999954224,44.140625,True,True,True,0.60884,
+311217,AI-Regeneration (real),patch_pair,0.9999999999761906,100.0,False,True,False,0.00656,
+311217,AI-Regeneration (real),proposed,-0.015624999999938965,49.21875,True,True,True,0.41241,51.171875
+311217,Unrelated Image (negative control),global_dwt_dct,0.12499999999951172,56.25,True,True,True,0.72642,
+311217,Unrelated Image (negative control),patch_pair,0.23809523808956917,61.904761904761905,True,True,True,0.00639,
+311217,Unrelated Image (negative control),proposed,0.046874999999816896,52.34375,True,True,True,0.5243,51.171875
+311356,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.3885,
+311356,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+311356,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19594,100.0
+311356,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38569,
+311356,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00265,
+311356,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19574,100.0
+311356,JPEG Q=75,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38674,
+311356,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+311356,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.20001,100.0
+311356,JPEG Q=50,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38669,
+311356,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00242,
+311356,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.19579,100.0
+311356,True Resize (0.75x),global_dwt_dct,0.039062499999847414,51.953125,True,False,False,0.3597,
+311356,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00581,
+311356,True Resize (0.75x),proposed,-0.023437499999908448,48.828125,True,False,False,0.11641,94.53125
+311356,True Crop (top 10%),global_dwt_dct,-0.10156249999960328,44.921875,True,True,True,0.48221,
+311356,True Crop (top 10%),patch_pair,0.3809523809433107,69.04761904761905,True,True,True,0.00622,
+311356,True Crop (top 10%),proposed,0.039062499999847414,51.953125,True,True,True,0.18462,52.734375
+311356,Brightness (+20%),global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.40481,
+311356,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00255,
+311356,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.19732,96.875
+311356,AI-Regeneration (real),global_dwt_dct,-0.11718749999954224,44.140625,True,True,True,0.6047,
+311356,AI-Regeneration (real),patch_pair,0.8095238095045352,90.47619047619048,False,True,False,0.00584,
+311356,AI-Regeneration (real),proposed,-0.11718749999954224,44.140625,True,True,True,0.41146,48.4375
+311356,Unrelated Image (negative control),global_dwt_dct,0.11718749999954224,55.859375,True,True,True,0.72013,
+311356,Unrelated Image (negative control),patch_pair,-0.047619047617913836,47.61904761904761,True,True,True,0.00628,
+311356,Unrelated Image (negative control),proposed,0.07031249999972534,53.515625,True,True,True,0.53251,51.953125
+311435,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.41859,
+311435,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00334,
+311435,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.28505,100.0
+311435,JPEG Q=90,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.40693,
+311435,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00248,
+311435,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.20565,100.0
+311435,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39385,
+311435,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00253,
+311435,JPEG Q=75,proposed,0.9374999999963379,96.875,False,False,True,0.20093,100.0
+311435,JPEG Q=50,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.39562,
+311435,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00245,
+311435,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.20127,100.0
+311435,True Resize (0.75x),global_dwt_dct,0.03124999999987793,51.5625,True,False,False,0.30361,
+311435,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00478,
+311435,True Resize (0.75x),proposed,-0.09374999999963379,45.3125,True,False,False,0.11461,96.09375
+311435,True Crop (top 10%),global_dwt_dct,-0.06249999999975586,46.875,True,True,True,0.40147,
+311435,True Crop (top 10%),patch_pair,0.23809523808956917,61.904761904761905,True,True,True,0.00625,
+311435,True Crop (top 10%),proposed,-0.039062499999847414,48.046875,True,True,True,0.19021,48.828125
+311435,Brightness (+20%),global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.58222,
+311435,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00392,
+311435,Brightness (+20%),proposed,0.9687499999962159,98.4375,True,False,False,0.20683,94.921875
+311435,AI-Regeneration (real),global_dwt_dct,-0.07031249999972534,46.484375,True,True,True,0.62708,
+311435,AI-Regeneration (real),patch_pair,0.7142857142687076,85.71428571428571,True,True,True,0.0064,
+311435,AI-Regeneration (real),proposed,0.03124999999987793,51.5625,True,True,True,0.44088,52.34375
+311435,Unrelated Image (negative control),global_dwt_dct,-0.015624999999938965,49.21875,True,True,True,0.49733,
+311435,Unrelated Image (negative control),patch_pair,-0.14285714285374151,42.857142857142854,True,True,True,0.00591,
+311435,Unrelated Image (negative control),proposed,0.039062499999847414,51.953125,True,True,True,0.37935,49.21875
+312087,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39548,
+312087,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00242,
+312087,Untouched (positive control),proposed,0.9609374999962463,98.046875,False,False,True,0.20027,100.0
+312087,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39656,
+312087,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+312087,JPEG Q=90,proposed,0.9609374999962463,98.046875,False,False,True,0.201,100.0
+312087,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.40023,
+312087,JPEG Q=75,patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00253,
+312087,JPEG Q=75,proposed,0.9609374999962463,98.046875,False,False,True,0.20078,100.0
+312087,JPEG Q=50,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38686,
+312087,JPEG Q=50,patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00303,
+312087,JPEG Q=50,proposed,0.9609374999962463,98.046875,False,False,True,0.1961,100.0
+312087,True Resize (0.75x),global_dwt_dct,-0.10156249999960328,44.921875,True,False,False,0.32282,
+312087,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00491,
+312087,True Resize (0.75x),proposed,-0.10156249999960328,44.921875,True,False,False,0.11794,94.53125
+312087,True Crop (top 10%),global_dwt_dct,-0.08593749999966431,45.703125,True,True,True,0.36845,
+312087,True Crop (top 10%),patch_pair,0.3809523809433107,69.04761904761905,True,True,True,0.00502,
+312087,True Crop (top 10%),proposed,-0.13281249999948122,43.359375,True,True,True,0.18001,47.65625
+312087,Brightness (+20%),global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38518,
+312087,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+312087,Brightness (+20%),proposed,0.9765624999961854,98.828125,True,False,False,0.19682,95.703125
+312087,AI-Regeneration (real),global_dwt_dct,-0.15624999999938965,42.1875,True,True,True,0.60203,
+312087,AI-Regeneration (real),patch_pair,0.7619047618866214,88.09523809523809,False,True,False,0.00621,
+312087,AI-Regeneration (real),proposed,-0.07812499999969483,46.09375,True,True,True,0.41393,48.828125
+312087,Unrelated Image (negative control),global_dwt_dct,0.12499999999951172,56.25,True,True,True,0.24841,
+312087,Unrelated Image (negative control),patch_pair,-0.14285714285374151,42.857142857142854,True,True,True,0.00457,
+312087,Unrelated Image (negative control),proposed,0.07812499999969483,53.90625,True,True,True,0.05797,49.21875
+31263,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.41149,
+31263,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+31263,Untouched (positive control),proposed,0.9453124999963074,97.265625,False,False,True,0.19922,100.0
+31263,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38505,
+31263,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00247,
+31263,JPEG Q=90,proposed,0.9453124999963074,97.265625,False,False,True,0.19712,100.0
+31263,JPEG Q=75,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.38962,
+31263,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00242,
+31263,JPEG Q=75,proposed,0.9453124999963074,97.265625,False,False,True,0.19754,100.0
+31263,JPEG Q=50,global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.38482,
+31263,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+31263,JPEG Q=50,proposed,0.9453124999963074,97.265625,False,False,True,0.19554,99.609375
+31263,True Resize (0.75x),global_dwt_dct,-0.03124999999987793,48.4375,True,False,False,0.31201,
+31263,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00485,
+31263,True Resize (0.75x),proposed,-0.03124999999987793,48.4375,True,False,False,0.12212,95.3125
+31263,True Crop (top 10%),global_dwt_dct,0.17968749999929812,58.984375,True,True,True,0.3672,
+31263,True Crop (top 10%),patch_pair,0.42857142856122454,71.42857142857143,True,True,True,0.00501,
+31263,True Crop (top 10%),proposed,0.03124999999987793,51.5625,True,True,True,0.18553,52.34375
+31263,Brightness (+20%),global_dwt_dct,0.9843749999961549,99.21875,False,False,True,0.39066,
+31263,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+31263,Brightness (+20%),proposed,0.9609374999962463,98.046875,True,False,False,0.19679,93.75
+31263,AI-Regeneration (real),global_dwt_dct,-0.08593749999966431,45.703125,True,True,True,0.59977,
+31263,AI-Regeneration (real),patch_pair,0.5714285714149661,78.57142857142857,True,True,True,0.0066,
+31263,AI-Regeneration (real),proposed,-0.039062499999847414,48.046875,True,True,True,0.41354,50.78125
+31263,Unrelated Image (negative control),global_dwt_dct,0.039062499999847414,51.953125,True,True,True,0.23212,
+31263,Unrelated Image (negative control),patch_pair,0.09523809523582767,54.761904761904766,True,True,True,0.00442,
+31263,Unrelated Image (negative control),proposed,0.039062499999847414,51.953125,True,True,True,0.04073,49.21875
+32771,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.40223,
+32771,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00242,
+32771,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.1988,100.0
+32771,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39162,
+32771,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+32771,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19902,100.0
+32771,JPEG Q=75,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.39115,
+32771,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+32771,JPEG Q=75,proposed,0.9687499999962159,98.4375,False,False,True,0.20138,100.0
+32771,JPEG Q=50,global_dwt_dct,0.9374999999963379,96.875,False,False,True,0.39033,
+32771,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00251,
+32771,JPEG Q=50,proposed,0.9687499999962159,98.4375,False,False,True,0.19867,99.609375
+32771,True Resize (0.75x),global_dwt_dct,-0.03124999999987793,48.4375,True,False,False,0.30539,
+32771,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00476,
+32771,True Resize (0.75x),proposed,-0.15624999999938965,42.1875,True,False,False,0.1162,92.578125
+32771,True Crop (top 10%),global_dwt_dct,0.18749999999926759,59.375,True,True,True,0.37218,
+32771,True Crop (top 10%),patch_pair,0.47619047617913834,73.80952380952381,True,True,True,0.00507,
+32771,True Crop (top 10%),proposed,0.17968749999929812,58.984375,True,True,True,0.1824,52.734375
+32771,Brightness (+20%),global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38963,
+32771,Brightness (+20%),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00274,
+32771,Brightness (+20%),proposed,0.9609374999962463,98.046875,True,False,False,0.20119,92.1875
+32771,AI-Regeneration (real),global_dwt_dct,-0.046874999999816896,47.65625,True,True,True,0.30148,
+32771,AI-Regeneration (real),patch_pair,0.8095238095045352,90.47619047619048,False,True,False,0.0047,
+32771,AI-Regeneration (real),proposed,-0.11718749999954224,44.140625,True,True,True,0.10941,44.53125
+32771,Unrelated Image (negative control),global_dwt_dct,0.039062499999847414,51.953125,True,True,True,0.28706,
+32771,Unrelated Image (negative control),patch_pair,0.23809523808956917,61.904761904761905,True,True,True,0.00547,
+32771,Unrelated Image (negative control),proposed,0.023437499999908448,51.171875,True,True,True,0.09792,46.09375
+32821,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39107,
+32821,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.0024,
+32821,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.1992,100.0
+32821,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.39221,
+32821,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+32821,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.20192,100.0
+32821,JPEG Q=75,global_dwt_dct,0.9765624999961854,98.828125,False,False,True,0.39099,
+32821,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+32821,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.19978,100.0
+32821,JPEG Q=50,global_dwt_dct,0.9765624999961854,98.828125,False,False,True,0.3855,
+32821,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.0025,
+32821,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.19595,100.0
+32821,True Resize (0.75x),global_dwt_dct,-0.015624999999938965,49.21875,True,False,False,0.30089,
+32821,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00471,
+32821,True Resize (0.75x),proposed,-0.039062499999847414,48.046875,True,False,False,0.11637,95.703125
+32821,True Crop (top 10%),global_dwt_dct,0.14843749999942019,57.421875,True,True,True,0.36704,
+32821,True Crop (top 10%),patch_pair,0.5238095237970521,76.19047619047619,True,True,True,0.005,
+32821,True Crop (top 10%),proposed,-0.11718749999954224,44.140625,True,True,True,0.18172,50.78125
+32821,Brightness (+20%),global_dwt_dct,0.9765624999961854,98.828125,False,False,True,0.38676,
+32821,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+32821,Brightness (+20%),proposed,0.9531249999962769,97.65625,True,False,False,0.19712,96.484375
+32821,AI-Regeneration (real),global_dwt_dct,0.10937499999957276,55.46875,True,True,True,0.59808,
+32821,AI-Regeneration (real),patch_pair,0.9047619047403629,95.23809523809523,False,True,False,0.00592,
+32821,AI-Regeneration (real),proposed,-0.007812499999969483,49.609375,True,True,True,0.40875,47.65625
+32821,Unrelated Image (negative control),global_dwt_dct,-0.09374999999963379,45.3125,True,True,True,0.24639,
+32821,Unrelated Image (negative control),patch_pair,0.09523809523582767,54.761904761904766,True,True,True,0.00458,
+32821,Unrelated Image (negative control),proposed,0.10937499999957276,55.46875,True,True,True,0.0576,45.3125
+32835,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38693,
+32835,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+32835,Untouched (positive control),proposed,0.9609374999962463,98.046875,False,False,True,0.19608,100.0
+32835,JPEG Q=90,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38526,
+32835,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+32835,JPEG Q=90,proposed,0.9609374999962463,98.046875,False,False,True,0.19606,100.0
+32835,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38597,
+32835,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00235,
+32835,JPEG Q=75,proposed,0.9609374999962463,98.046875,False,False,True,0.19664,100.0
+32835,JPEG Q=50,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.39143,
+32835,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00241,
+32835,JPEG Q=50,proposed,0.9531249999962769,97.65625,False,False,True,0.19636,100.0
+32835,True Resize (0.75x),global_dwt_dct,0.023437499999908448,51.171875,True,False,False,0.30194,
+32835,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00472,
+32835,True Resize (0.75x),proposed,-0.03124999999987793,48.4375,True,False,False,0.11346,95.703125
+32835,True Crop (top 10%),global_dwt_dct,0.08593749999966431,54.296875,True,True,True,0.39541,
+32835,True Crop (top 10%),patch_pair,0.23809523808956917,61.904761904761905,True,True,True,0.00509,
+32835,True Crop (top 10%),proposed,0.10156249999960328,55.078125,True,True,True,0.18086,50.0
+32835,Brightness (+20%),global_dwt_dct,0.9687499999962159,98.4375,False,False,True,0.38454,
+32835,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00234,
+32835,Brightness (+20%),proposed,0.9453124999963074,97.265625,True,False,False,0.19909,96.484375
+32835,AI-Regeneration (real),global_dwt_dct,-0.023437499999908448,48.828125,True,True,True,0.60167,
+32835,AI-Regeneration (real),patch_pair,0.8571428571224491,92.85714285714286,False,True,False,0.00581,
+32835,AI-Regeneration (real),proposed,0.05468749999978638,52.734375,True,True,True,0.41022,48.046875
+32835,Unrelated Image (negative control),global_dwt_dct,0.09374999999963379,54.6875,True,True,True,0.25508,
+32835,Unrelated Image (negative control),patch_pair,0.0,50.0,True,True,True,0.00479,
+32835,Unrelated Image (negative control),proposed,-0.046874999999816896,47.65625,True,True,True,0.06667,50.390625
+32974,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38623,
+32974,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+32974,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19704,100.0
+32974,JPEG Q=90,global_dwt_dct,0.9843749999961549,99.21875,False,False,True,0.38629,
+32974,JPEG Q=90,patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00236,
+32974,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19615,100.0
+32974,JPEG Q=75,global_dwt_dct,0.9843749999961549,99.21875,False,False,True,0.38588,
+32974,JPEG Q=75,patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00234,
+32974,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.19642,100.0
+32974,JPEG Q=50,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.3859,
+32974,JPEG Q=50,patch_pair,0.9047619047403629,95.23809523809523,False,False,True,0.00237,
+32974,JPEG Q=50,proposed,0.9687499999962159,98.4375,False,False,True,0.20296,100.0
+32974,True Resize (0.75x),global_dwt_dct,-0.1406249999994507,42.96875,True,False,False,0.30322,
+32974,True Resize (0.75x),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00473,
+32974,True Resize (0.75x),proposed,-0.023437499999908448,48.828125,True,False,False,0.11452,90.625
+32974,True Crop (top 10%),global_dwt_dct,0.03124999999987793,51.5625,True,True,True,0.3666,
+32974,True Crop (top 10%),patch_pair,0.3809523809433107,69.04761904761905,True,True,True,0.00499,
+32974,True Crop (top 10%),proposed,0.007812499999969483,50.390625,True,True,True,0.18131,51.5625
+32974,Brightness (+20%),global_dwt_dct,0.9765624999961854,98.828125,False,False,True,0.3845,
+32974,Brightness (+20%),patch_pair,0.8571428571224491,92.85714285714286,False,False,True,0.00235,
+32974,Brightness (+20%),proposed,0.9687499999962159,98.4375,True,False,False,0.19581,92.96875
+32974,AI-Regeneration (real),global_dwt_dct,-0.07031249999972534,46.484375,True,True,True,0.3009,
+32974,AI-Regeneration (real),patch_pair,0.6190476190328799,80.95238095238095,True,True,True,0.00492,
+32974,AI-Regeneration (real),proposed,-0.015624999999938965,49.21875,True,True,True,0.11225,48.046875
+32974,Unrelated Image (negative control),global_dwt_dct,-0.07031249999972534,46.484375,True,True,True,0.26587,
+32974,Unrelated Image (negative control),patch_pair,0.047619047617913836,52.38095238095239,True,True,True,0.0051,
+32974,Unrelated Image (negative control),proposed,0.015624999999938965,50.78125,True,True,True,0.07568,49.609375
+33552,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38716,
+33552,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00374,
+33552,Untouched (positive control),proposed,0.9687499999962159,98.4375,False,False,True,0.2058,100.0
+33552,JPEG Q=90,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38564,
+33552,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00247,
+33552,JPEG Q=90,proposed,0.9453124999963074,97.265625,False,False,True,0.19594,100.0
+33552,JPEG Q=75,global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38483,
+33552,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00238,
+33552,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.196,100.0
+33552,JPEG Q=50,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38548,
+33552,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00236,
+33552,JPEG Q=50,proposed,0.9453124999963074,97.265625,False,False,True,0.1988,100.0
+33552,True Resize (0.75x),global_dwt_dct,0.03124999999987793,51.5625,True,False,False,0.30137,
+33552,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00498,
+33552,True Resize (0.75x),proposed,0.11718749999954224,55.859375,True,False,False,0.11345,97.65625
+33552,True Crop (top 10%),global_dwt_dct,0.17187499999932862,58.59375,True,True,True,0.36596,
+33552,True Crop (top 10%),patch_pair,0.5714285714149661,78.57142857142857,True,True,True,0.00497,
+33552,True Crop (top 10%),proposed,0.05468749999978638,52.734375,True,True,True,0.18125,53.90625
+33552,Brightness (+20%),global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38659,
+33552,Brightness (+20%),patch_pair,0.9999999999761906,100.0,False,False,True,0.00253,
+33552,Brightness (+20%),proposed,0.9453124999963074,97.265625,True,False,False,0.19645,96.09375
+33552,AI-Regeneration (real),global_dwt_dct,-0.11718749999954224,44.140625,True,True,True,0.29547,
+33552,AI-Regeneration (real),patch_pair,0.9999999999761906,100.0,False,True,False,0.00464,
+33552,AI-Regeneration (real),proposed,-0.1406249999994507,42.96875,True,True,True,0.10683,56.25
+33552,Unrelated Image (negative control),global_dwt_dct,-0.03124999999987793,48.4375,True,True,True,0.25198,
+33552,Unrelated Image (negative control),patch_pair,0.23809523808956917,61.904761904761905,True,True,True,0.00473,
+33552,Unrelated Image (negative control),proposed,0.023437499999908448,51.171875,True,True,True,0.06328,55.46875
+3356,Untouched (positive control),global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38882,
+3356,Untouched (positive control),patch_pair,0.9999999999761906,100.0,False,False,True,0.00239,
+3356,Untouched (positive control),proposed,0.9531249999962769,97.65625,False,False,True,0.19673,100.0
+3356,JPEG Q=90,global_dwt_dct,0.9453124999963074,97.265625,False,False,True,0.38588,
+3356,JPEG Q=90,patch_pair,0.9999999999761906,100.0,False,False,True,0.00266,
+3356,JPEG Q=90,proposed,0.9531249999962769,97.65625,False,False,True,0.19672,100.0
+3356,JPEG Q=75,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.38586,
+3356,JPEG Q=75,patch_pair,0.9999999999761906,100.0,False,False,True,0.00235,
+3356,JPEG Q=75,proposed,0.9531249999962769,97.65625,False,False,True,0.19818,100.0
+3356,JPEG Q=50,global_dwt_dct,0.9531249999962769,97.65625,False,False,True,0.3857,
+3356,JPEG Q=50,patch_pair,0.9999999999761906,100.0,False,False,True,0.00237,
+3356,JPEG Q=50,proposed,0.9687499999962159,98.4375,False,False,True,0.19673,99.609375
+3356,True Resize (0.75x),global_dwt_dct,-0.1406249999994507,42.96875,True,False,False,0.30412,
+3356,True Resize (0.75x),patch_pair,0.9999999999761906,100.0,False,False,True,0.00499,
+3356,True Resize (0.75x),proposed,-0.03124999999987793,48.4375,True,False,False,0.12177,96.484375
+3356,True Crop (top 10%),global_dwt_dct,0.05468749999978638,52.734375,True,True,True,0.40942,
+3356,True Crop (top 10%),patch_pair,0.47619047617913834,73.80952380952381,True,True,True,0.00521,
+3356,True Crop (top 10%),proposed,0.1406249999994507,57.03125,True,True,True,0.18151,47.265625
+3356,Brightness (+20%),global_dwt_dct,0.9609374999962463,98.046875,False,False,True,0.38721,
+3356,Brightness (+20%),patch_pair,0.9523809523582767,97.61904761904762,False,False,True,0.00248,
+3356,Brightness (+20%),proposed,0.9843749999961549,99.21875,True,False,False,0.19929,91.015625
+3356,AI-Regeneration (real),global_dwt_dct,-0.023437499999908448,48.828125,True,True,True,0.29471,
+3356,AI-Regeneration (real),patch_pair,0.8571428571224491,92.85714285714286,False,True,False,0.00464,
+3356,AI-Regeneration (real),proposed,0.007812499999969483,50.390625,True,True,True,0.10676,45.703125
+3356,Unrelated Image (negative control),global_dwt_dct,0.023437499999908448,51.171875,True,True,True,0.2695,
+3356,Unrelated Image (negative control),patch_pair,0.047619047617913836,52.38095238095239,True,True,True,0.00518,
+3356,Unrelated Image (negative control),proposed,-0.046874999999816896,47.65625,True,True,True,0.08087,44.140625
