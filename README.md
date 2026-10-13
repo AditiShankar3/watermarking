@@ -9,7 +9,7 @@ A two-tier image-authentication and digital-forensics framework for traffic surv
 
 The system also includes an HMAC-authenticated ledger, an AES-256-GCM encrypted evidence vault, optional IPFS/Pinata backups, and a hash-chained forensic audit log.
 
-> This repository implements a research prototype. Detection and robustness claims should be interpreted in the context of the datasets, attacks, and thresholds actually evaluated.
+> This repository implements a research prototype. 
 
 ## Key Features
 
@@ -24,8 +24,6 @@ The system also includes an HMAC-authenticated ledger, an AES-256-GCM encrypted 
 - **Resource profiling:** Measures CPU time and peak resident memory for registration workflows.
 
 ## Project Structure
-
-The following layout is based on the repository's current `README.md`. Confirm it against the latest branch if files have changed since that README was committed.
 
 ```text
 watermarking/
@@ -198,18 +196,4 @@ Thresholds and precedence must be checked in the implementation and calibrated u
 - Restrict access to evidence recovery and record recovery operations in the audit trail.
 - Keep runtime data, generated images, ledgers, and vault files out of version control unless there is a deliberate, safe reason to publish test fixtures.
 
-## Known Issues and Future Work
 
-The repository's existing documentation identifies the following limitations:
-
-1. **Resize-induced NC drift:** Non-power-of-two resizing and aspect-ratio changes may cause anchor remapping drift in `extract_key_v3`.
-2. **Blacklist administration:** The current blacklist workflow does not provide an administrative override through the documented interface.
-3. **pHash lookup scalability:** Linear perceptual-hash scans may become expensive for large evidence collections; an index such as a BK-tree could improve near-duplicate lookup performance.
-
-## Evaluation Notes
-
-For research reporting, document the dataset, number of scenes, attack types, compression settings, thresholds, and hardware used. Report ownership verification and tamper detection separately, and include false-acceptance and false-rejection results where possible. Avoid generalizing a result beyond the test conditions under which it was measured.
-
-## License
-
-This project is licensed under the MIT License. See the [`LICENSE`](LICENSE) file for details.
